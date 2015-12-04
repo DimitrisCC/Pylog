@@ -1,67 +1,52 @@
 #!/usr/bin/env python3
 
-# Dimaki Georgia 3130052
-# Kolokathi Fotini 3090088
-# Papatheodorou Dimitris 3130162
-#########################################################
-
-# pylog.py
+import tkinter as tk
+from tkinter import filedialog
+from tkinter import scrolledtext
 
 
-ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
-NUMBERS = '0123456789'
-EOF = 'EOF'
-ENDLINE = '\n'
-WHITESPACES = (' ', '\t', '\n')
+class MainGUI(tk.Frame):
+    def __init__(self, parent):
+        tk.Frame.__init__(self, parent)
+        self.parent = parent
+
+        self.ndbfile = None
+
+        self.parent.wm_title("Pylog")
+        self.menu = tk.Menu(self.parent)
+        self.parent.geometry("850x600")
+        self.parent.config(menu=self.menu)
+
+        self.sub_menu = tk.Menu(self.menu)
+        self.menu.add_cascade(label='File', menu=self.sub_menu)
+        self.sub_menu.add_command(label='Save...', command=MainGUI.lol)
+        self.sub_menu.add_command(label='Load...', command=MainGUI.lol)
+
+        self.ndb_button = tk.Button(self.parent, text='Load Knowledge Base...', command=self.get_file)
+        self.ndb_button.grid(row=0, column=0)
+
+        self.input = tk.scrolledtext.ScrolledText(self.parent, undo=True, height=10, width=10)
+        self.input.grid(row=1, column=0, columnspan=2, sticky=tk.W + tk.E + tk.N + tk.S, pady=5)
+        self.output = tk.scrolledtext.ScrolledText(self.parent, width=50, undo=True)
+        self.output.grid(row=2, column=0)
+        self.ndbbox = tk.scrolledtext.ScrolledText(self.parent, width=50, undo=True)
+        self.ndbbox.grid(row=2, column=1, columnspan=1)
+        self.input.insert(tk.INSERT, ">>>")
+
+    @staticmethod
+    def lol():
+        print("lol")
+
+    def get_file(self):
+        file = tk.filedialog.askopenfile(parent=self.parent, title='Choose a knowledge db file')
+        if file is not None:
+            self.ndbfile = file.read()
+            file.close()
+        if self.ndbfile is not None:
+            self.ndbbox.insert(tk.END, self.ndbfile)  # DEBUG
 
 
-class Lexer:
-    def __init__(self, line):
-        self.line = line  # the line to analyze
-        self.pos = 0  # the current position in the line
-        self.char = line[self.pos]  # the current character of the line analysis
-
-    def is_whitespace(self):
-        return self.char in WHITESPACES
-
-    def is_number(self):
-        return self.char in NUMBERS
-
-    def is_letter(self):
-        return self.char in ALPHABET or self.char in ALPHABET.upper()
-
-    def consume(self):
-        self.pos += 1
-        if self.pos >= len(self.line):
-            self.char = EOF
-        else:
-            self.char = self.line[self.pos]
-        return self.char
-
-    def is_comment(self):
-        return self.char == '%'
-
-    def consume_comment(self):
-        while self.char != ENDLINE:
-            self.consume()
-
-
-# class Parser:
-
-
-def main():
-    print('Pylog <3 ')
-
-    while True:
-        try:
-            line = input('>>> ')  # raw_input in python 2.x
-        except EOFError:  # not sure about this
-            break
-        if not line or line == '^C':  # line is nil
-            continue
-        if line == 'quit' or line == '^Q':  # quiting option
-            break
-
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = MainGUI(root)
+    root.mainloop()
