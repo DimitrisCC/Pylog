@@ -28,6 +28,19 @@ class Lexer:
     def is_letter(self):
         return self.char in ALPHABET or self.char in ALPHABET.upper()
 
+    def is_alpharethmetic(self):
+        return self.is_letter() or self.is_number()
+
+    def get_identifier(self):
+        identifier = ''
+        identifier += self.consume();
+        if self.is_letter():
+            raise "Not a correct identifier"
+        identifier += self.consume();
+        while self.is_alpharethmetic():
+            identifier += self.consume();
+        return identifier
+
     def consume(self):
         self.pos += 1
         if self.pos >= len(self.line):
@@ -42,5 +55,12 @@ class Lexer:
     def consume_comment(self):
         while self.char != ENDLINE:
             self.consume()
+
+    def is_if(self):
+        if self.consume() == ':':
+            if self.consume() == '-':
+                return True
+        return False
+
 
 # class Parser:
