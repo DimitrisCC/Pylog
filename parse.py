@@ -33,12 +33,12 @@ class Lexer:
 
     def get_identifier(self):
         identifier = ''
-        identifier += self.consume();
+        identifier += self.consume()
         if self.is_letter():
             raise "Not a correct identifier"
-        identifier += self.consume();
+        identifier += self.consume()
         while self.is_alpharethmetic():
-            identifier += self.consume();
+            identifier += self.consume()
         return identifier
 
     def consume(self):
