@@ -33,7 +33,7 @@ class Variable(Term):
 
 
 class Relation(Term):
-    def __init__(self, name, arguments):
+    def __init__(self, name, arguments):  # arguments of type Variable
         super(Relation, self).__init__(name)
         self.args = arguments
 
@@ -69,3 +69,23 @@ class Clause(Term):
             body.append(rel.make_bindings(bind_dict))
 
         return Clause(head, body)
+
+
+def unify_var(var, expr, unifier):
+    if not unifier:
+        return False
+
+    # check if var is Variable
+    if isinstance(var, Variable):
+        if var in unifier:
+            return unify(unifier[var], expr, unifier)
+        elif expr in unifier:
+            return unify(var, unifier[expr], unifier)
+        elif isinstance(expr, Relation) and var in expr.args:
+            return False
+        else:
+            return unifier.append(var, expr)
+
+
+def unify(x, y, unifier):
+    pass  # svisto otan to simplirwseis
