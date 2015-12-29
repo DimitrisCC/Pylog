@@ -91,9 +91,9 @@ def unify(x, y, unifier):
     elif x==y:
         return unifier
     elif isinstance(x, Variable):
-        unify_var(x, y, unifier)
+        return unify_var(x, y, unifier)
     elif isinstance(y, Variable):
-        unify_var(y, x, unifier)
+        return unify_var(y, x, unifier)
     elif isinstance(x, Relation) and isinstance(y, Relation):
         if x.name != y.name or len(x.args) != len(y.args):
            return False
