@@ -48,7 +48,7 @@ class Relation(Term):
             else:
                 bound.append(arg)
 
-        return Relation(self.pred, bound)
+        return Relation(self.name, bound)
 
 
 class Clause(Term):
