@@ -5,6 +5,7 @@
 
 # parse.py
 
+from logic import *
 
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 NUMBERS = '0123456789'
@@ -62,5 +63,72 @@ class Lexer:
                 return True
         return False
 
+    def next_char(self):
+        if self.pos + 1 > len(self.line) :
+            return EOF
+        else:
+            return self.line[self.pos + 1]
+
+    def isEndOfTerm(self, char):
+        return char == ')' or char == ']'
 
 # class Parser:
+
+    #it parses only one line
+    #to parse multiple lines (in a file maybe) run this until it returns EOF
+    #no checking for invalid input is done but it maybe could
+    def ParseLine(self):
+        token = ''
+        self.char = ''
+        term = None
+        while(self.char != EOF or self.char != ENDLINE):
+            if self.char == '(':
+                #the you have a relation so a Relation must be created
+                args = []
+
+                while self.char != ")":
+                    args.append(self.ParseLine())
+
+                term = Relation(name = token, body = args)
+
+            elif self.char == ',' or self.isEndOfTerm(self.next_char()):
+                #you probably have an argument for either a relation, a clause or a list
+                # generally you have to return what u created already
+                if not term: #term is None ---> maybe check for correct line or sth
+                    if token.isupper(): #then it is a variable
+                        term = Variable(name = token)
+                    else:
+                    #the you have just a term (if it was not just a term you would have entered
+                        term = Term(name = token)
+                # else you have already created a list or a relation
+                return term
+
+           # elif self.char == '[':
+                #list
+            elif self.is_if():
+                #create clause
+                args = []
+
+                while(self.next_char() != ENDLINE or self.next_char() != EOF):
+                    args.append(self.ParseLine())
+
+                term = Clause(head = token, body = args)
+            else:
+                #now you can just create the next word
+                token += self.consume()
+
+        #eof occured
+        # if term is not assigned to sth you must deal with the token first, create the term and then return it
+        if not term: #term is None ---> maybe check for correct line or sth
+            if token == '':
+                if self.char == ENDLINE: return ENDLINE
+                elif self.char == EOF: return EOF
+                else: return False
+
+            if token.isupper(): #then it is a variable
+                term = Variable(name = token)
+            else:
+                #the you have just a term (if it was not just a term you would have entered
+                term = Term(name = token)
+
+        return term

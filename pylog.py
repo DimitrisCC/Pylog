@@ -30,6 +30,7 @@ class MainGUI(tk.Frame):
         self.output = tk.scrolledtext.ScrolledText(self.parent, width=50, undo=True)
         self.output.grid(row=2, column=0)
         self.ndbbox = tk.scrolledtext.ScrolledText(self.parent, width=50, undo=True)
+
         self.ndbbox.grid(row=2, column=1, columnspan=1)
         self.input.insert(tk.INSERT, ">>>")
 
@@ -43,9 +44,10 @@ class MainGUI(tk.Frame):
             self.ndbfile = file.read()
             file.close()
         if self.ndbfile is not None:
-            self.ndbbox.insert(tk.END, self.ndbfile)  # DEBUG
-
-
+            self.ndbbox.configure(state = tk.NORMAL)
+            self.ndbbox.delete(1.0, tk.END)
+            self.ndbbox.insert(tk.INSERT, self.ndbfile)  # DEBUG
+            self.ndbbox.configure(state = tk.DISABLED)
 if __name__ == "__main__":
     root = tk.Tk()
     app = MainGUI(root)

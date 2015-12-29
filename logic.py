@@ -1,3 +1,6 @@
+
+from parse import  *
+
 class Term(object):
     def __init__(self, name):
         self.name = name
@@ -6,12 +9,10 @@ class Term(object):
         return isinstance(term, Term) and self.name == term.name
 
     def __hash__(self):
-        return hash(self.name)
+        return hash(self.var)
 
 
 class Variable(Term):
-    new_num = 0  # "static" member to be used in produce_new_name function
-
     def __init__(self, name):
         super(Variable, self).__init__(name)
 
@@ -33,12 +34,6 @@ class Variable(Term):
 
         return binding
 
-    @staticmethod
-    def produce_new_name(self):
-        # produce a new temporary name to avoid confusion between variable names
-        Variable.new_num += 1
-        return Variable('%s%d' % (self.name, Variable.new_num))
-
 
 class Relation(Term):
     def __init__(self, name, arguments):  # arguments of type Variable
@@ -55,20 +50,11 @@ class Relation(Term):
                 bound.append(arg.get_bindings(bind_dict))
             else:
                 bound.append(arg)
+
         return Relation(self.name, bound)
-
-    def produce_new_names4vars(self):
-        new_names = []
-        for arg in self.args:
-            new_names.append(Variable.produce_new_name())
-        return new_names
-
-    def rename_vars(self):
-        return Relation(self.name, Relation.produce_new_names4vars())
 
 
 class Clause(Term):
-
     def __init__(self, head, body=None):
         self.head = head
         if body is None:
@@ -84,40 +70,82 @@ class Clause(Term):
         body = []
         for rel in self.body:
             body.append(rel.make_bindings(bind_dict))
+
         return Clause(head, body)
 
-    def produce_new_names4vars(self):
-        renamed_body = []
-        for part in self.body:
-            renamed_body.append(part.rename_vars())
-        return renamed_body
+class List(Term):
+    def __init__(self, args = None):
+        self.arguments = args
 
-    def rename_vars(self):
-        return Clause(self.head.rename_vars(), self.produce_new_names4vars())
+    def __eq__(self, list):
+        return isinstance(list, List) and self.arguments == list(list.arguments)
 
+    def isEmpty(self): return self.arguments == None
 
-# renaming to be used in proving goals
+    def firstArg(self):
+        if self.isEmpty(): return None
+        else: return self.arguments[0]
+
+    def getSubList(self, pos):
+        if pos >  len(self.arguments): return List()
+        else: return List(self.arguments[ pos :])
+
+    def make_bindings(self, bind_dict):
+        body = []
+        for term in self.arguments:
+            body.append(term.make_bindings(bind_dict))
+
+        return List(body)
 
 
 def unify_var(var, expr, unifier):
-    if not unifier:
+    if var in unifier:
+        return unify(unifier[var], expr, unifier)
+    elif expr in unifier:
+        return unify(var, unifier[expr], unifier)
+    elif isinstance(expr, Relation) and var in expr.args:
         return False
+    else:
+        unifier[var] = expr
+        return unifier.append(var, expr)
 
-    # check if var is Variable
-    if isinstance(var, Variable):
-        if var in unifier:
-            return unify(unifier[var], expr, unifier)
-        elif expr in unifier:
-            return unify(var, unifier[expr], unifier)
-        elif isinstance(expr, Relation) and var in expr.args:
-            return False
-        else:
-            return unifier.append(var, expr)
 
 
 def unify(x, y, unifier):
-    pass  # svisto otan to simplirwseis
+    #Failure
+    if unifier == False:
+        return False
+    elif x==y:
+        return unifier
+    elif isinstance(x, Variable):
+        return unify_var(x, y, unifier)
+    elif isinstance(y, Variable):
+        return unify_var(y, x, unifier)
+    elif isinstance(x, Relation) and isinstance(y, Relation):
+        if x.name != y.name or len(x.args) != len(y.args):
+           return False
+        for i,argx in enumerate(x.args):
+           return unify(argx,y.args[i],unifier)
+    elif isinstance(x, Clause) and isinstance(y, Clause):
+        if len(x.body) != len(y.body):
+           return False
+        unifier = unify(x.head, y.head, unifier)
+        if unifier==False:
+           return False
+        for i,bodyx in enumerate(x.body):
+           return unify(bodyx,y.body[i],unifier)
+   #elif: lists
+    else:
+        return False
 
 
-def lel():
-    pass  # gamietai to git apla
+def createKB(file):
+    # file = a list chars th file contains
+    f = open(file, 'r')
+    lines = f.readlines()
+    kb = []
+    for line in lines:
+        kb.append(Lexer(line).ParseLine())
+    return kb
+
+
