@@ -147,4 +147,3 @@ def createKB(file):
         kb.append(Lexer(line).ParseLine())
     return kb
 
-
