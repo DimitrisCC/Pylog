@@ -117,6 +117,7 @@ class Lexer:
                 #now you can just create the next word
                 token += self.consume()
 
+
         #eof occured
         # if term is not assigned to sth you must deal with the token first, create the term and then return it
         if not term: #term is None ---> maybe check for correct line or sth

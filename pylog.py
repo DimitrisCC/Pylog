@@ -4,7 +4,6 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import scrolledtext
 
-
 class MainGUI(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)

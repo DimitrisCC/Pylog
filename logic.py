@@ -138,7 +138,6 @@ def unify(x, y, unifier):
     else:
         return False
 
-
 def createKB(file):
     # file = a list chars th file contains
     f = open(file, 'r')
