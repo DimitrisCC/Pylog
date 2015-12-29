@@ -1,3 +1,5 @@
+from parse import  *
+
 class Term(object):
     def __init__(self, name):
         self.name = name
@@ -7,7 +9,6 @@ class Term(object):
 
     def __hash__(self):
         return hash(self.var)
-
 
 
 class Variable(Term):
@@ -71,6 +72,30 @@ class Clause(Term):
 
         return Clause(head, body)
 
+class List(Term):
+    def __init__(self, args = None):
+        self.arguments = args
+
+    def __eq__(self, list):
+        return isinstance(list, List) and self.arguments == list(list.arguments)
+
+    def isEmpty(self): return self.arguments == None
+
+    def firstArg(self):
+        if self.isEmpty(): return None
+        else: return self.arguments[0]
+
+    def getSubList(self, pos):
+        if pos >  len(self.arguments): return List()
+        else: return List(self.arguments[ pos :])
+
+    def make_bindings(self, bind_dict):
+        body = []
+        for term in self.arguments:
+            body.append(term.make_bindings(bind_dict))
+
+        return List(body)
+
 
 def unify_var(var, expr, unifier):
     if var in unifier:
@@ -111,3 +136,15 @@ def unify(x, y, unifier):
    #elif: lists
     else:
         return False
+
+
+def createKB(file):
+    # file = a list chars th file contains
+    f = open(file, 'r')
+    lines = f.readlines()
+    kb = []
+    for line in lines:
+        kb.append(Lexer(line).ParseLine())
+    return kb
+
+
