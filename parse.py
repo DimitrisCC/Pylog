@@ -14,6 +14,7 @@ ENDLINE = '\n'
 WHITESPACES = (' ', '\t', '\n')
 
 
+
 class Lexer:
     def __init__(self, line):
         self.line = line  # the line to analyze

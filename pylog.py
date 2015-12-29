@@ -31,6 +31,7 @@ class MainGUI(tk.Frame):
         self.ndbbox = tk.scrolledtext.ScrolledText(self.parent, width=50, undo=True)
 
         self.ndbbox.grid(row=2, column=1, columnspan=1)
+
         self.input.insert(tk.INSERT, ">>>")
 
     @staticmethod

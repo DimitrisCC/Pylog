@@ -9,6 +9,7 @@ class Term(object):
         return hash(self.var)
 
 
+
 class Variable(Term):
     def __init__(self, name):
         super(Variable, self).__init__(name)
