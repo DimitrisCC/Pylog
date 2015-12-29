@@ -35,7 +35,7 @@ class MainGUI(tk.Frame):
 
     @staticmethod
     def lol():
-        print("lol")
+        print("lolen")
 
     def get_file(self):
         file = tk.filedialog.askopenfile(parent=self.parent, title='Choose a knowledge db file')
