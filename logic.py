@@ -13,9 +13,6 @@ class Term(object):
     def __eq__(self, term):
         return isinstance(term, Term) and self.name == term.name
 
-    def __hash__(self):
-        return hash(self.var)
-
 
 class Variable(Term):
     def __init__(self, name):
@@ -33,6 +30,8 @@ class Variable(Term):
     def __eq__(self, var):
         return isinstance(var, Variable) and var.name == self.name
 
+    def __hash__(self):
+        return hash(self.name)
 
     def get_bindings(self, bind_dict):
         # vars_dict a dictionary -> variable:binding_values
