@@ -147,10 +147,11 @@ def unify(x, y, unifier):
     elif isinstance(y, Variable):
         return unify_var(y, x, unifier)
     elif isinstance(x, Relation) and isinstance(y, Relation):
-        if x.name != y.name or len(x.args) != len(y.args):
-           return False
-        for i,argx in enumerate(x.args):
-           return unify(argx,y.args[i],unifier)
+        #if x.name != y.name or len(x.args) != len(y.args):
+        #   return False
+        #for i,argx in enumerate(x.args):
+        #   return unify(argx,y.args[i],unifier)
+        return unify(x.args,y.args,unify(x.name,y.name,unifier))
     elif isinstance(x, Clause) and isinstance(y, Clause):
         if len(x.body) != len(y.body):
            return False
