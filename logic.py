@@ -1,8 +1,14 @@
-from parse import  *
-
 class Term(object):
     def __init__(self, name):
         self.name = name
+
+    def __repr__(self):
+        """A string s is a symbol if it starts with an alphabetic char."""
+        if self.is_symbol(self.name) and self.name[0].islower():
+           return str(self.name)
+
+    def is_symbol(self,s):
+        return isinstance(s, str) and s[0].isalpha()
 
     def __eq__(self, term):
         return isinstance(term, Term) and self.name == term.name
@@ -13,10 +19,20 @@ class Term(object):
 
 class Variable(Term):
     def __init__(self, name):
-        super(Variable, self).__init__(name)
+         super(Variable, self).__init__(name)
+
+    def __repr__(self):
+        if self.is_prop_symbol(self.name):
+           return str(self.name)
+
+    def is_prop_symbol(self,s):
+         """The first symbol is an uppercase character and the string s is not either TRUE or FALSE."""
+         return super(Variable,self).is_symbol(s) and s[0].isupper() or s[0]=='_' and s != 'TRUE' and s != 'FALSE'
+
 
     def __eq__(self, var):
         return isinstance(var, Variable) and var.name == self.name
+
 
     def get_bindings(self, bind_dict):
         # vars_dict a dictionary -> variable:binding_values
@@ -39,8 +55,13 @@ class Relation(Term):
         super(Relation, self).__init__(name)
         self.args = arguments
 
+    def __repr__(self):
+        if super(Relation,self).is_symbol(self.name) and self.name[0].islower() and len(self.args)>0:
+           return '%s(%s)' % (self.name, ', '.join(map(str, self.args)))#####den eimai sigourh an paei str dedomenou oti mporei n einai variable,atom,list
+
+
     def __eq__(self, relation):
-        return isinstance(relation, Relation) and self.name == relation.pred and self.args == relation.args
+        return isinstance(relation, Relation) and self.name == relation.name and list(self.args) == list(relation.args)
 
     def make_bindings(self, bind_dict):
         bound = []
@@ -61,8 +82,14 @@ class Clause(Term):
         else:
             self.body = body
 
+    def __repr__(self):
+        if self.body:
+            return '%s :- %s' % (self.head, ', '.join(map(str, self.body)))
+        return str(self.head)
+
+
     def __eq__(self, clause):
-        return isinstance(clause, Clause) and self.head == clause.head and self.body == list(clause.body)
+        return isinstance(clause, Clause) and self.head == clause.head and list(self.body) == list(clause.body)
 
     def make_bindings(self, bind_dict):
         head = self.head.make_bindings(bind_dict)
