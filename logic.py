@@ -128,13 +128,24 @@ def unify_var(var, expr, unifier):
         return unify(unifier[var], expr, unifier)
     elif expr in unifier:
         return unify(var, unifier[expr], unifier)
-    elif isinstance(expr, Relation) and var in expr.args:
-        return False
+    elif occur_check(var, expr):
+        return None
     else:
-        unifier[var] = expr
-        return unifier.append(var, expr)
+        return extend(unifier,var,expr)
 
+def occur_check(var, x):
+    "Return true if var occurs anywhere in x."
+    if var == x:
+        return True
+    elif isinstance(x, Relation) and var in x.args:
+        return True
 
+def extend(unifier, var, val):
+    #extend({x: 1}, y, 2)
+    #{y: 2, x: 1}
+    unifier2 = unifier.copy()
+    unifier2[var] = val
+    return unifier2
 
 def unify(x, y, unifier):
     #Failure
@@ -147,19 +158,7 @@ def unify(x, y, unifier):
     elif isinstance(y, Variable):
         return unify_var(y, x, unifier)
     elif isinstance(x, Relation) and isinstance(y, Relation):
-        #if x.name != y.name or len(x.args) != len(y.args):
-        #   return False
-        #for i,argx in enumerate(x.args):
-        #   return unify(argx,y.args[i],unifier)
         return unify(x.args,y.args,unify(x.name,y.name,unifier))
-    elif isinstance(x, Clause) and isinstance(y, Clause):
-        if len(x.body) != len(y.body):
-           return False
-        unifier = unify(x.head, y.head, unifier)
-        if unifier==False:
-           return False
-        for i,bodyx in enumerate(x.body):
-           return unify(bodyx,y.body[i],unifier)
    #elif: lists
     else:
         return False
