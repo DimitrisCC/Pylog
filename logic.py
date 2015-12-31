@@ -102,6 +102,9 @@ class List(Term):
     def __init__(self, args = None):
         self.arguments = args
 
+    def __repr__(self):
+         return '[%s]' % (', '.join(map(str, self.arguments)))
+
     def __eq__(self, list):
         return isinstance(list, List) and self.arguments == list(list.arguments)
 
@@ -139,6 +142,9 @@ def occur_check(var, x):
         return True
     elif isinstance(x, Relation) and var in x.args:
         return True
+    elif isinstance(x, List) and var in x.arguments:
+        return True
+    return False
 
 def extend(unifier, var, val):
     #extend({x: 1}, y, 2)
@@ -157,12 +163,12 @@ def unify(x, y, unifier):
         return unify_var(x, y, unifier)
     elif isinstance(y, Variable):
         return unify_var(y, x, unifier)
-    elif isinstance(x, Relation) and isinstance(y, Relation):
+    elif isinstance(x, Relation) and isinstance(y, Relation) and len(x.args)==len(y.args):
         return unify(x.args,y.args,unify(x.name,y.name,unifier))
-   #elif: lists
+    elif isinstance(x, List) and isinstance(y, List) and len(x.arguments)==len(y.arguments):
+        return unify(x.getSubList(1), y.getSubList(1), unify(x.firstArg(), y.firstArg(), unifier))
     else:
         return False
-
 
 def createKB(file):
     # file = a list chars th file contains
@@ -170,6 +176,6 @@ def createKB(file):
     lines = f.readlines()
     kb = []
     for line in lines:
-        kb.append(Lexer(line).ParseLine())
+        kb.append(Lexer(line).ParseLine())#des mhpws anti gia appand paei extend kalutera.
     return kb
 
