@@ -147,11 +147,20 @@ def occur_check(var, x):
     return False
 
 def extend(unifier, var, val):
+    #------->nomizw paizei na ginetai kai pio apla..epeidi dn eimai sigouri omws dn t peirazw
     #extend({x: 1}, y, 2)
     #{y: 2, x: 1}
     unifier2 = unifier.copy()
     unifier2[var] = val
     return unifier2
+
+def compose(unifier1, unifier2): #----------> endexetai na mn xreiazetai!!!
+    #--> dn xreiazetai an ginetai na kanoume apeu8eias extend se dictionaries omws dn t epsa3a poli
+    for i in unifier2.items():
+        unifier1 = extend(unifier1, i[0], i[1])
+
+    return unifier1
+
 
 def unify(x, y, unifier):
     #Failure
@@ -179,3 +188,23 @@ def createKB(file):
         kb.append(Lexer(line).ParseLine())#des mhpws anti gia appand paei extend kalutera.
     return kb
 
+#----->PROSOXIIIII: deite ta TODO
+def fol_bc_ask(KB, goals, unifier):
+
+    if goals == []: return unifier
+    ans = []
+
+    b = goals.pop(0).make_bindings() #TODO --> make_bindings for Variable
+    #---> nai 3erw exei to get alla einai allo to make_bindings + dn xreiazetai na
+    #koitame ti einai auto sto opoio t kaloume
+
+    for t in KB:
+        t = t.new_vars() #TODO
+        new_unif = unify( t.head , b)
+        if not new_unif : continue
+
+        goals.extend(t.body) #to extend einai gia na pros8eseis ta stoixeia
+        #mias listas se iparxousa lista
+        ans.append(fol_bc_ask(KB, goals, compose(unifier, new_unif)))
+
+    return ans
