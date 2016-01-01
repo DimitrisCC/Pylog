@@ -1,3 +1,5 @@
+import pylog as analysis
+
 class Term(object):
     def __init__(self, name):
         self.name = name
@@ -7,7 +9,7 @@ class Term(object):
         if self.is_symbol(self.name) and self.name[0].islower():
            return str(self.name)
 
-    def is_symbol(self,s):
+    def is_symbol(self, s):
         return isinstance(s, str) and s[0].isalpha()
 
     def __eq__(self, term):
@@ -16,16 +18,15 @@ class Term(object):
 
 class Variable(Term):
     def __init__(self, name):
-         super(Variable, self).__init__(name)
+        super(Variable, self).__init__(name)
 
     def __repr__(self):
         if self.is_prop_symbol(self.name):
-           return str(self.name)
+            return str(self.name)
 
-    def is_prop_symbol(self,s):
-         """The first symbol is an uppercase character and the string s is not either TRUE or FALSE."""
-         return super(Variable,self).is_symbol(s) and s[0].isupper() or s[0]=='_' and s != 'TRUE' and s != 'FALSE'
-
+    def is_prop_symbol(self, s):
+        """The first symbol is an uppercase character and the string s is not either TRUE or FALSE."""
+        return super(Variable, self).is_symbol(s) and s[0].isupper() or s[0] == '_' and s != 'TRUE' and s != 'FALSE'
 
     def __eq__(self, var):
         return isinstance(var, Variable) and var.name == self.name
@@ -55,9 +56,9 @@ class Relation(Term):
         self.args = arguments
 
     def __repr__(self):
-        if super(Relation,self).is_symbol(self.name) and self.name[0].islower() and len(self.args)>0:
-           return '%s(%s)' % (self.name, ', '.join(map(str, self.args)))#####den eimai sigourh an paei str dedomenou oti mporei n einai variable,atom,list
-
+        if super(Relation, self).is_symbol(self.name) and self.name[0].islower() and len(self.args) > 0:
+            return '%s(%s)' % (self.name, ', '.join(map(str, self.args)))
+            # den eimai sigourh an paei str dedomenou oti mporei n einai variable,atom,list
 
     def __eq__(self, relation):
         return isinstance(relation, Relation) and self.name == relation.name and list(self.args) == list(relation.args)
@@ -86,7 +87,6 @@ class Clause(Term):
             return '%s :- %s' % (self.head, ', '.join(map(str, self.body)))
         return str(self.head)
 
-
     def __eq__(self, clause):
         return isinstance(clause, Clause) and self.head == clause.head and list(self.body) == list(clause.body)
 
@@ -98,31 +98,36 @@ class Clause(Term):
 
         return Clause(head, body)
 
+
 class List(Term):
-    def __init__(self, args = None):
+    def __init__(self, args=None):
         self.arguments = args
 
     def __repr__(self):
-         return '[%s]' % (', '.join(map(str, self.arguments)))
+        return '[%s]' % (', '.join(map(str, self.arguments)))
 
-    def __eq__(self, list):
-        return isinstance(list, List) and self.arguments == list(list.arguments)
+    def __eq__(self, alist):
+        return isinstance(alist, List) and self.arguments == list(alist.arguments)
 
-    def isEmpty(self): return self.arguments == None
+    def is_empty(self):
+        return self.arguments is None
 
-    def firstArg(self):
-        if self.isEmpty(): return None
-        else: return self.arguments[0]
+    def first_arg(self):
+        if self.is_empty():
+            return None
+        else:
+            return self.arguments[0]
 
-    def getSubList(self, pos):
-        if pos >  len(self.arguments): return List()
-        else: return List(self.arguments[ pos :])
+    def get_sublist(self, pos):
+        if pos > len(self.arguments):
+            return List()
+        else:
+            return List(self.arguments[pos:])
 
     def make_bindings(self, bind_dict):
         body = []
         for term in self.arguments:
             body.append(term.make_bindings(bind_dict))
-
         return List(body)
 
 
@@ -134,10 +139,11 @@ def unify_var(var, expr, unifier):
     elif occur_check(var, expr):
         return None
     else:
-        return extend(unifier,var,expr)
+        return extend(unifier, var, expr)
+
 
 def occur_check(var, x):
-    "Return true if var occurs anywhere in x."
+    """Return true if var occurs anywhere in x."""
     if var == x:
         return True
     elif isinstance(x, Relation) and var in x.args:
@@ -146,29 +152,32 @@ def occur_check(var, x):
         return True
     return False
 
+
 def extend(unifier, var, val):
-    #extend({x: 1}, y, 2)
-    #{y: 2, x: 1}
+    # extend({x: 1}, y, 2)
+    # {y: 2, x: 1}
     unifier2 = unifier.copy()
     unifier2[var] = val
     return unifier2
 
+
 def unify(x, y, unifier):
-    #Failure
+    # Failure
     if unifier == False:
         return False
-    elif x==y:
+    elif x == y:
         return unifier
     elif isinstance(x, Variable):
         return unify_var(x, y, unifier)
     elif isinstance(y, Variable):
         return unify_var(y, x, unifier)
-    elif isinstance(x, Relation) and isinstance(y, Relation) and len(x.args)==len(y.args):
-        return unify(x.args,y.args,unify(x.name,y.name,unifier))
-    elif isinstance(x, List) and isinstance(y, List) and len(x.arguments)==len(y.arguments):
-        return unify(x.getSubList(1), y.getSubList(1), unify(x.firstArg(), y.firstArg(), unifier))
+    elif isinstance(x, Relation) and isinstance(y, Relation) and len(x.args) == len(y.args):
+        return unify(x.args, y.args, unify(x.name, y.name, unifier))
+    elif isinstance(x, List) and isinstance(y, List) and len(x.arguments) == len(y.arguments):
+        return unify(x.get_sublist(1), y.get_sublist(1), unify(x.first_arg(), y.first_arg(), unifier))
     else:
         return False
+
 
 def createKB(file):
     # file = a list chars th file contains
@@ -176,6 +185,6 @@ def createKB(file):
     lines = f.readlines()
     kb = []
     for line in lines:
-        kb.append(Lexer(line).ParseLine())#des mhpws anti gia appand paei extend kalutera.
+        kb.append(analysis.Lexer(line).ParseLine())  # des mhpws anti gia appand paei extend kalutera
     return kb
 
