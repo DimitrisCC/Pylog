@@ -25,7 +25,7 @@ class MainGUI(tk.Frame):
         self.ndb_button.grid(row=0, column=0)
 
         self.input = tk.scrolledtext.ScrolledText(self.parent, undo=True, height=10, width=10)
-        self.input.grid(row=1, column=0, columnspan=2, sticky=tk.W + tk.E + tk.qN + tk.S, pady=5)
+        self.input.grid(row=1, column=0, columnspan=2, sticky=tk.W + tk.E + tk.N + tk.S, pady=5)
         self.output = tk.scrolledtext.ScrolledText(self.parent, width=50, undo=True)
         self.output.grid(row=2, column=0)
         self.ndbbox = tk.scrolledtext.ScrolledText(self.parent, width=50, undo=True)

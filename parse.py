@@ -69,7 +69,7 @@ class Lexer:
         else:
             return self.line[self.pos + 1]
 
-    def isEndOfTerm(self, char):
+    def is_end_of_term(self, char):
         return char == ')' or char == ']'
 
 # class Parser:
@@ -89,7 +89,7 @@ class Lexer:
                     args.append(self.parse_line())
                 term = Relation(name=token, body=args)
 
-            elif self.char == ',' or self.isEndOfTerm(self.next_char()):
+            elif self.char == ',' or self.is_end_of_term(self.next_char()):
                 # you probably have an argument for either a relation, a clause or a list
                 # generally you have to return what u created already
                 if not term:  # term is None ---> maybe check for correct line or sth
