@@ -14,7 +14,6 @@ ENDLINE = '\n'
 WHITESPACES = (' ', '\t', '\n')
 
 
-
 class Lexer:
     def __init__(self, line):
         self.line = line  # the line to analyze
@@ -75,62 +74,60 @@ class Lexer:
 
 # class Parser:
 
-    #it parses only one line
-    #to parse multiple lines (in a file maybe) run this until it returns EOF
-    #no checking for invalid input is done but it maybe could
-    def ParseLine(self):
+    # it parses only one line
+    # to parse multiple lines (in a file maybe) run this until it returns EOF
+    # no checking for invalid input is done but it maybe could
+    def parse_line(self):
         token = ''
         self.char = ''
         term = None
-        while(self.char != EOF or self.char != ENDLINE):
+        while self.char != EOF or self.char != ENDLINE:
             if self.char == '(':
-                #the you have a relation so a Relation must be created
+                #  the you have a relation so a Relation must be created
                 args = []
-
                 while self.char != ")":
-                    args.append(self.ParseLine())
-
-                term = Relation(name = token, body = args)
+                    args.append(self.parse_line())
+                term = Relation(name=token, body=args)
 
             elif self.char == ',' or self.isEndOfTerm(self.next_char()):
-                #you probably have an argument for either a relation, a clause or a list
+                # you probably have an argument for either a relation, a clause or a list
                 # generally you have to return what u created already
-                if not term: #term is None ---> maybe check for correct line or sth
-                    if token.isupper(): #then it is a variable
-                        term = Variable(name = token)
+                if not term:  # term is None ---> maybe check for correct line or sth
+                    if token.isupper():  # then it is a variable
+                        term = Variable(name=token)
                     else:
-                    #the you have just a term (if it was not just a term you would have entered
-                        term = Term(name = token)
+                        # the you have just a term (if it was not just a term you would have entered
+                        term = Term(name=token)
                 # else you have already created a list or a relation
                 return term
 
-           # elif self.char == '[':
-                #list
+                # elif self.char == '[':
+                # list
             elif self.is_if():
-                #create clause
+                # create clause
                 args = []
 
-                while(self.next_char() != ENDLINE or self.next_char() != EOF):
-                    args.append(self.ParseLine())
+                while self.next_char() != ENDLINE or self.next_char() != EOF:
+                    args.append(self.parse_line())
 
-                term = Clause(head = token, body = args)
+                term = Clause(head=token, body=args)
             else:
-                #now you can just create the next word
+                # now you can just create the next word
                 token += self.consume()
 
-
-        #eof occured
+        # eof occurred
         # if term is not assigned to sth you must deal with the token first, create the term and then return it
-        if not term: #term is None ---> maybe check for correct line or sth
+        if not term:  # term is None ---> maybe check for correct line or sth
             if token == '':
-                if self.char == ENDLINE: return ENDLINE
-                elif self.char == EOF: return EOF
+                if self.char == ENDLINE:
+                    return ENDLINE
+                elif self.char == EOF:
+                    return EOF
                 else: return False
 
-            if token.isupper(): #then it is a variable
-                term = Variable(name = token)
+            if token.isupper():  # then it is a variable
+                term = Variable(name=token)
             else:
-                #the you have just a term (if it was not just a term you would have entered
-                term = Term(name = token)
-
+                # the you have just a term (if it was not just a term you would have entered
+                term = Term(name=token)
         return term
