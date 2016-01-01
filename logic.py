@@ -1,3 +1,6 @@
+import parse as analysis
+
+
 class Term(object):
     def __init__(self, name):
         self.name = name
@@ -195,23 +198,25 @@ def createKB(file):
         kb.append(analysis.Lexer(line).ParseLine())  # des mhpws anti gia appand paei extend kalutera
     return kb
 
-#----->PROSOXIIIII: deite ta TODO
-def fol_bc_ask(KB, goals, unifier):
 
-    if goals == []: return unifier
+# ----->PROSOXIIIII: deite ta TODO
+
+
+def fol_bc_ask(KB, goals, unifier):
+    if goals == []:
+        return unifier
     ans = []
 
-    b = goals.pop(0).make_bindings() #TODO --> make_bindings for Variable
-    #---> nai 3erw exei to get alla einai allo to make_bindings + dn xreiazetai na
-    #koitame ti einai auto sto opoio t kaloume
+    b = goals.pop(0).make_bindings()  # TODO --> make_bindings for Variable
+    # ---> nai 3erw exei to get alla einai allo to make_bindings + dn xreiazetai na
+    # koitame ti einai auto sto opoio t kaloume
 
     for t in KB:
-        t = t.new_vars() #TODO
+        t = t.new_vars()  # TODO
         new_unif = unify( t.head , b)
         if not new_unif : continue
 
-        goals.extend(t.body) #to extend einai gia na pros8eseis ta stoixeia
-        #mias listas se iparxousa lista
+        goals.extend(t.body)  # to extend einai gia na pros8eseis ta stoixeia
+        # mias listas se iparxousa lista
         ans.append(fol_bc_ask(KB, goals, compose(unifier, new_unif)))
-
     return ans
