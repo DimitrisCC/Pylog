@@ -155,16 +155,16 @@ def occur_check(var, x):
 
 
 def extend(unifier, var, val):
-    #------->nomizw paizei na ginetai kai pio apla..epeidi dn eimai sigouri omws dn t peirazw
-    #extend({x: 1}, y, 2)
-    #{y: 2, x: 1}
+    # ------->nomizw paizei na ginetai kai pio apla..epeidi dn eimai sigouri omws dn t peirazw
+    # extend({x: 1}, y, 2)
+    # {y: 2, x: 1}
     unifier2 = unifier.copy()
     unifier2[var] = val
     return unifier2
 
 
-def compose(unifier1, unifier2): #----------> endexetai na mn xreiazetai!!!
-    #--> dn xreiazetai an ginetai na kanoume apeu8eias extend se dictionaries omws dn t epsa3a poli
+def compose(unifier1, unifier2):  # ----------> endexetai na mn xreiazetai!!!
+    # --> dn xreiazetai an ginetai na kanoume apeu8eias extend se dictionaries omws dn t epsa3a poli
     for i in unifier2.items():
         unifier1 = extend(unifier1, i[0], i[1])
 
@@ -195,7 +195,7 @@ def createKB(file):
     lines = f.readlines()
     kb = []
     for line in lines:
-        kb.append(analysis.Lexer(line).ParseLine())  # des mhpws anti gia appand paei extend kalutera
+        kb.append(analysis.Lexer(line).parse_line())  # des mhpws anti gia appand paei extend kalutera
     return kb
 
 
