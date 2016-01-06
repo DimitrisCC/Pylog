@@ -6,11 +6,11 @@ class Term(object):
         self.name = name
 
     def __repr__(self):
-        """A string s is a symbol if it starts with an alphabetic char."""
         if self.is_symbol(self.name) and self.name[0].islower():
            return str(self.name)
 
     def is_symbol(self, s):
+        """A string s is a symbol if it starts with an alphabetic char."""
         return isinstance(s, str) and s[0].isalpha()
 
     def __eq__(self, term):
@@ -48,6 +48,10 @@ class Variable(Term):
         if isinstance(binding, Relation):
             return binding.make_bindings(bind_dict)
         return binding
+
+    def make_bindings(self,bind_dict):
+        return self.get_bindings(bind_dict)
+
 
     @staticmethod
     def produce_new_name(self):
@@ -238,12 +242,12 @@ def fol_bc_ask(KB, goals, unifier):
         return unifier
     ans = []
 
-    b = goals.pop(0).make_bindings()  # TODO --> make_bindings for Variable
+    b = goals.pop(0).make_bindings(unifier)  # TODO --> make_bindings for Variable
     # ---> nai 3erw exei to get alla einai allo to make_bindings + dn xreiazetai na
     # koitame ti einai auto sto opoio t kaloume
 
     for t in KB:
-        t = t.new_vars()  # TODO
+        t = t.rename_vars()  # TODO
         new_unif = unify(t.head, b)
         if not new_unif:
             continue
