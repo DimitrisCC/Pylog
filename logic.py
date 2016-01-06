@@ -124,7 +124,7 @@ class Clause(Term):
 # renaming to be used in proving goals
 
 
-class List(Term):
+class PList(Term):
     def __init__(self, args=None):
         self.arguments = args
 
@@ -132,7 +132,7 @@ class List(Term):
         return '[%s]' % (', '.join(map(str, self.arguments)))
 
     def __eq__(self, alist):
-        return isinstance(alist, List) and self.arguments == list(alist.arguments)
+        return isinstance(alist, PList) and self.arguments == list(alist.arguments)
 
     def is_empty(self):
         return self.arguments is None
@@ -143,17 +143,24 @@ class List(Term):
         else:
             return self.arguments[0]
 
-    def get_sublist(self, pos):
-        if pos > len(self.arguments):
-            return List()
+    # def get_sublist(self, pos):
+    def __getitem__(self, pos):  # overloading the [] operator
+        if pos > len(self.arguments) or pos == False:
+            return PList()
         else:
-            return List(self.arguments[pos:])
+            if isinstance(pos, slice):
+                if pos.step is not None:
+                    return PList(self.arguments[pos.start:pos.step:pos.stop])
+                else:
+                    return PList(self.arguments[pos.start:pos.stop])
+            else:
+                return self.arguments[pos]
 
     def make_bindings(self, bind_dict):
         body = []
         for term in self.arguments:
             body.append(term.make_bindings(bind_dict))
-        return List(body)
+        return PList(body)
 
 
 def unify_var(var, expr, unifier):
@@ -173,7 +180,7 @@ def occur_check(var, x):
         return True
     elif isinstance(x, Relation) and var in x.args:
         return True
-    elif isinstance(x, List) and var in x.arguments:
+    elif isinstance(x, PList) and var in x.arguments:
         return True
     return False
 
@@ -207,8 +214,8 @@ def unify(x, y, unifier):
         return unify_var(y, x, unifier)
     elif isinstance(x, Relation) and isinstance(y, Relation) and len(x.args) == len(y.args):
         return unify(x.args, y.args, unify(x.name, y.name, unifier))
-    elif isinstance(x, List) and isinstance(y, List) and len(x.arguments) == len(y.arguments):
-        return unify(x.get_sublist(1), y.get_sublist(1), unify(x.first_arg(), y.first_arg(), unifier))
+    elif isinstance(x, PList) and isinstance(y, PList) and len(x.arguments) == len(y.arguments):
+        return unify(x[1:], y[1:], unify(x.first_arg(), y.first_arg(), unifier))
     else:
         return False
 
@@ -227,7 +234,7 @@ def createKB(file):
 
 
 def fol_bc_ask(KB, goals, unifier):
-    if goals == []:
+    if goals == False:
         return unifier
     ans = []
 
