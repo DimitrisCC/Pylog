@@ -3,9 +3,11 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import scrolledtext
+from logic import *
 
 
 class MainGUI(tk.Frame):
+
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
         self.parent = parent
@@ -40,10 +42,12 @@ class MainGUI(tk.Frame):
         print("lolen")
 
     def get_file(self):
-        file = tk.filedialog.askopenfile(parent=self.parent, title='Choose a knowledge db file')
-        if file is not None:
-            self.ndbfile = file.read()
+        filename = tk.filedialog.askopenfilename(parent=self.parent, title='Choose a knowledge db file', filetypes = [('Prolog files', '.pl')] )
+        if filename is not None:
+            file = open(filename, 'r')
+            self.ndbfile = file.read
             file.close()
+            kb = createKB(filename)
         if self.ndbfile is not None:
             self.ndbbox.configure(state = tk.NORMAL)
             self.ndbbox.delete(1.0, tk.END)

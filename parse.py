@@ -4,7 +4,6 @@
 #########################################################
 
 # parse.py
-
 from logic import *
 
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
@@ -58,8 +57,10 @@ class Lexer:
             self.consume()
 
     def is_if(self):
-        if self.consume() == ':':
-            if self.consume() == '-':
+        if self.char == ':':
+            self.consume()
+            if self.char == '-':
+                self.consume()
                 return True
         return False
 
@@ -79,17 +80,20 @@ class Lexer:
     # no checking for invalid input is done but it maybe could
     def parse_line(self):
         token = ''
-        self.char = ''
+        #self.char = ''
         term = None
         while self.char != EOF or self.char != ENDLINE:
+            self.consume()
             if self.char == '(':
                 #  the you have a relation so a Relation must be created
                 args = []
                 while self.char != ")":
                     args.append(self.parse_line())
                 term = Relation(name=token, body=args)
+                self.consume()
 
             elif self.char == ',' or self.is_end_of_term(self.next_char()):
+
                 # you probably have an argument for either a relation, a clause or a list
                 # generally you have to return what u created already
                 if not term:  # term is None ---> maybe check for correct line or sth
@@ -101,8 +105,15 @@ class Lexer:
                 # else you have already created a list or a relation
                 return term
 
-                # elif self.char == '[':
+            elif self.char == '[':
                 # list
+                list_members = []
+                while self.char != "]":
+                    list_members.append(self.parse_line())
+
+                term = PList(args = list_members)
+                self.consume()
+
             elif self.is_if():
                 # create clause
                 args = []
@@ -113,7 +124,7 @@ class Lexer:
                 term = Clause(head=token, body=args)
             else:
                 # now you can just create the next word
-                token += self.consume()
+                token += self.char
 
         # eof occurred
         # if term is not assigned to sth you must deal with the token first, create the term and then return it

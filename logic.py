@@ -9,7 +9,7 @@ class Term(object):
         if self.is_symbol(self.name) and self.name[0].islower():
            return str(self.name)
 
-    def is_symbol(self, s):
+    def is_symbol(self, s): #-------> pou xreiazetai!?
         """A string s is a symbol if it starts with an alphabetic char."""
         return isinstance(s, str) and s[0].isalpha()
 
@@ -27,7 +27,7 @@ class Variable(Term):
         if self.is_prop_symbol(self.name):
             return str(self.name)
 
-    def is_prop_symbol(self, s):
+    def is_prop_symbol(self, s): #-------> pou xreiazetai!?
         """The first symbol is an uppercase character and the string s is not either TRUE or FALSE."""
         return super(Variable, self).is_symbol(s) and s[0].isupper() or s[0] == '_' and s != 'TRUE' and s != 'FALSE'
 
@@ -228,6 +228,7 @@ def createKB(file):
     # file = a list chars th file contains
     f = open(file, 'r')
     lines = f.readlines()
+    #kleisimo arxeiou kapws
     kb = []
     for line in lines:
         kb.append(analysis.Lexer(line).parse_line())  # des mhpws anti gia appand paei extend kalutera
