@@ -1,4 +1,4 @@
-import parse as analysis
+import parse
 
 
 class Term(object):
@@ -231,7 +231,7 @@ def createKB(file):
     #kleisimo arxeiou kapws
     kb = []
     for line in lines:
-        kb.append(analysis.Lexer(line).parse_line())  # des mhpws anti gia appand paei extend kalutera
+        kb.append(parse.Lexer(line).parse_line())  # des mhpws anti gia appand paei extend kalutera
     return kb
 
 

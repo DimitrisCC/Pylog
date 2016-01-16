@@ -45,7 +45,7 @@ class MainGUI(tk.Frame):
         filename = tk.filedialog.askopenfilename(parent=self.parent, title='Choose a knowledge db file', filetypes = [('Prolog files', '.pl')] )
         if filename is not None:
             file = open(filename, 'r')
-            self.ndbfile = file.read
+            self.ndbfile = file.read()
             file.close()
             kb = createKB(filename)
         if self.ndbfile is not None:

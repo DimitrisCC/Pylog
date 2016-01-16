@@ -4,13 +4,14 @@
 #########################################################
 
 # parse.py
-from logic import *
+import  logic
 
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 NUMBERS = '0123456789'
 EOF = 'EOF'
 ENDLINE = '\n'
 WHITESPACES = (' ', '\t', '\n')
+error = "wrong command"
 
 
 class Lexer:
@@ -62,10 +63,12 @@ class Lexer:
             if self.char == '-':
                 self.consume()
                 return True
+            else:
+                return error
         return False
 
     def next_char(self):
-        if self.pos + 1 > len(self.line) :
+        if self.pos + 1 > len(self.line) - 1 :
             return EOF
         else:
             return self.line[self.pos + 1]
@@ -82,49 +85,60 @@ class Lexer:
         token = ''
         #self.char = ''
         term = None
-        while self.char != EOF or self.char != ENDLINE:
-            self.consume()
-            if self.char == '(':
-                #  the you have a relation so a Relation must be created
+        self.consume()
+
+        while self.char != EOF and self.char != ENDLINE: # an evaza edw consume 8a t ekane 2 fores! mia gia ton ena elegxo kai mia gia ton allo
+            if self.is_comment():
+                self.consume_comment() # an dn exei ENDLINE? prosoxi...
+            if self.char == '(': # relation case
+
                 args = []
-                while self.char != ")":
+                while self.consume() != ')': # exei katanalw8ei?
+                    if self.char == EOF or self.char ==  ENDLINE:
+                        return error
                     args.append(self.parse_line())
-                term = Relation(name=token, body=args)
-                self.consume()
+                if token == '':
+                    return  error
+                term = logic.Relation(name = token, arguments = args)
 
-            elif self.char == ',' or self.is_end_of_term(self.next_char()):
+            elif self.char == ',' or self.is_end_of_term(self.next_char()) or  self.char == '|': # arguments case
 
-                # you probably have an argument for either a relation, a clause or a list
-                # generally you have to return what u created already
-                if not term:  # term is None ---> maybe check for correct line or sth
-                    if token.isupper():  # then it is a variable
-                        term = Variable(name=token)
+                if not term:
+                    if token == '':
+                        return None
+                    elif token.isupper:
+                        return logic.Variable(name = token)
                     else:
-                        # the you have just a term (if it was not just a term you would have entered
-                        term = Term(name=token)
-                # else you have already created a list or a relation
-                return term
+                        return logic.Term(name = token)
 
-            elif self.char == '[':
-                # list
-                list_members = []
-                while self.char != "]":
-                    list_members.append(self.parse_line())
+                return  term
 
-                term = PList(args = list_members)
-                self.consume()
+            elif self.char == '[': # list case
 
-            elif self.is_if():
-                # create clause
+                args = []
+                while self.consume() != ']':
+                    if self.char == EOF or self.consume() == ENDLINE:
+                        return error
+                    args.append(self.parse_line())
+                if token == '':
+                    return  error
+                term = logic.PList(arguments = args)
+
+            elif self.char == ':':# clause case
+
+                if self.consume() != '-' or not term:
+                    return error
+
                 args = []
 
-                while self.next_char() != ENDLINE or self.next_char() != EOF:
+                while self.consume()!= EOF and self.consume() != ENDLINE:
                     args.append(self.parse_line())
 
-                term = Clause(head=token, body=args)
+                term = logic.Clause(head = term, body = args)
+
             else:
-                # now you can just create the next word
                 token += self.char
+                self.consume()
 
         # eof occurred
         # if term is not assigned to sth you must deal with the token first, create the term and then return it
@@ -137,8 +151,8 @@ class Lexer:
                 else: return False
 
             if token.isupper():  # then it is a variable
-                term = Variable(name=token)
+                term = logic.Variable(name=token)
             else:
                 # the you have just a term (if it was not just a term you would have entered
-                term = Term(name=token)
+                term = logic.Term(name=token)
         return term
