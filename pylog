@@ -34,7 +34,13 @@ class MainGUI(tk.Frame):
 
         self.ndbbox.grid(row=2, column=1, columnspan=1)
 
-        self.input.insert(tk.INSERT, ">>>")
+        #self.input.insert(tk.INSERT, "Prolog Interpreter \n\n")
+        #Den mporesa na kanw kati kalutero.Den vgazei ton cursor..Kai an grapsei peripou 5 xarakthres dn ts emfanizei,alla tous amesws epomenous ts emfanizei.
+        self.label = tk.Label(self.input, text=">>> \n\n\n\n\n",bg="white",cursor="arrow")
+        self.label.pack(side='left', padx = 0, pady = 0)
+        #self.input.mark_set(tk.INSERT, 1.7)
+
+        #self.input.insert(tk.INSERT, ">>>")
 
     @staticmethod
     def lol():
