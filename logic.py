@@ -13,6 +13,9 @@ class Term(object):
         """A string s is a symbol if it starts with an alphabetic char."""
         return isinstance(s, str) and s[0].isalpha()
 
+    def rename_vars(self):
+        return self
+
     def __eq__(self, term):
         return isinstance(term, Term) and self.name == term.name
 
@@ -59,6 +62,9 @@ class Variable(Term):
         Variable.new_num += 1
         return Variable('%s%d' % (self.name, Variable.new_num))
 
+    def rename_vars(self):
+        return self.produce_new_name()
+
 
 class Relation(Term):
     def __init__(self, name, arguments):  # arguments of type Variable
@@ -89,8 +95,7 @@ class Relation(Term):
         return new_names
 
     def rename_vars(self):
-        return Relation(self.name, Relation.produce_new_names4vars())
-
+        return Relation(self.name, self.produce_new_names4vars())
 
 class Clause(Term):
     def __init__(self, head, body=None):
@@ -160,6 +165,12 @@ class PList(Term):
             else:
                 return self.arguments[pos]
 
+    def rename_vars(self):
+        renamed = []
+        for arg in self.arguments:
+            renamed.append(arg.rename_vars())
+        return Plist(renamed)
+
     def make_bindings(self, bind_dict):
         body = []
         for term in self.arguments:
@@ -202,7 +213,6 @@ def compose(unifier1, unifier2):  # ----------> endexetai na mn xreiazetai!!!
     # --> dn xreiazetai an ginetai na kanoume apeu8eias extend se dictionaries omws dn t epsa3a poli
     for i in unifier2.items():
         unifier1 = extend(unifier1, i[0], i[1])
-
     return unifier1
 
 
@@ -231,7 +241,7 @@ def createKB(file):
     #kleisimo arxeiou kapws
     kb = []
     for line in lines:
-        kb.append(parse.Lexer(line).parse_line())  # des mhpws anti gia appand paei extend kalutera
+        kb.append(parse.Lexer(line).parse_line())  # des mhpws anti gia appand paei extend kalutera.To append einai kalutero otan theloume na prosthesoume ena mono element.Ara asto etsi
     return kb
 
 
@@ -247,9 +257,9 @@ def fol_bc_ask(KB, goals, unifier):
     # ---> nai 3erw exei to get alla einai allo to make_bindings + dn xreiazetai na
     # koitame ti einai auto sto opoio t kaloume
 
-    for t in KB:
+    for t in KB:#sullegoume ta clauses apo th KB pou exoun idio head me to relation pou theloume na apodeixoume kai kanoume unify wste na vroume ayta pou tairiazoun.
         t = t.rename_vars()  # TODO
-        new_unif = unify(t.head, b)
+        new_unif = unify(t.head, b,unifier)
         if not new_unif:
             continue
 
