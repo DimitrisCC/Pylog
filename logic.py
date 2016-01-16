@@ -169,7 +169,7 @@ class PList(Term):
         renamed = []
         for arg in self.arguments:
             renamed.append(arg.rename_vars())
-        return Plist(renamed)
+        return PList(renamed)
 
     def make_bindings(self, bind_dict):
         body = []
@@ -192,6 +192,7 @@ def unify_var(var, expr, unifier):
 def occur_check(var, x):
     """Return true if var occurs anywhere in x."""
     if var == x:
+
         return True
     elif isinstance(x, Relation) and var in x.args:
         return True
