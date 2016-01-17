@@ -28,7 +28,7 @@ class Variable(Term):
 
     def __repr__(self):
         if self.is_prop_symbol(self.name):
-            return str(self.name)
+            return '%s' % str(self.name)
 
     def is_prop_symbol(self, s): #-------> pou xreiazetai!?
         """The first symbol is an uppercase character and the string s is not either TRUE or FALSE."""
