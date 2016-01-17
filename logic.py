@@ -32,7 +32,7 @@ class Variable(Term):
 
     def is_prop_symbol(self, s): #-------> pou xreiazetai!?
         """The first symbol is an uppercase character and the string s is not either TRUE or FALSE."""
-        return super(Variable, self).is_symbol(s) and s[0].isupper() or s[0] == '_' and s != 'TRUE' and s != 'FALSE'
+        return (super(Variable, self).is_symbol(s) and s[0].isupper() and s != 'TRUE' and s != 'FALSE') or (s[0] == '_')
 
     def __eq__(self, var):
         return isinstance(var, Variable) and var.name == self.name
