@@ -3,11 +3,11 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import scrolledtext
-
 from logic import *
 
 
 class MainGUI(tk.Frame):
+    
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
         self.parent = parent
@@ -29,41 +29,32 @@ class MainGUI(tk.Frame):
 
         self.input = tk.scrolledtext.ScrolledText(self.parent, undo=True, height=10, width=10)
         self.input.grid(row=1, column=0, columnspan=2, sticky=tk.W + tk.E + tk.N + tk.S, pady=5)
-
         self.output = tk.scrolledtext.ScrolledText(self.parent, width=50, undo=True)
         self.output.grid(row=2, column=0)
-
         self.ndbbox = tk.scrolledtext.ScrolledText(self.parent, width=50, undo=True)
 
         self.ndbbox.grid(row=2, column=1, columnspan=1)
 
-        # self.input.insert(tk.INSERT, "Prolog Interpreter \n\n")
-        # Den mporesa na kanw kati kalutero.Den vgazei ton cursor..Kai an grapsei peripou 5 xarakthres dn ts emfanizei,alla tous amesws epomenous ts emfanizei.
-        # self.label = tk.Label(self.input, text=">>> \n\n\n\n\n",bg="white",cursor="arrow")
-        # self.label.pack(side='left', padx = 0, pady = 0)
-        # self.input.mark_set(tk.INSERT, 1.7)
-
-        # self.input.insert(tk.INSERT, ">>>")
+        self.input.insert(tk.INSERT, ">>>")
 
     @staticmethod
     def lol():
         print("lolen")
 
     def get_file(self):
-        filename = tk.filedialog.askopenfilename(parent=self.parent, title='Choose a knowledge db file',
-                                                 filetypes=[('Prolog files', '.pl')])
+        filename = tk.filedialog.askopenfilename(parent=self.parent, title='Choose a knowledge db file', filetypes = [('Prolog files', '.pl')] )
         if filename is not None:
             file = open(filename, 'r')
             self.ndbfile = file.read()
             file.close()
             kb = createKB(filename)
+            for k in kb:
+                print(k)
         if self.ndbfile is not None:
-            self.ndbbox.configure(state=tk.NORMAL)
+            self.ndbbox.configure(state = tk.NORMAL)
             self.ndbbox.delete(1.0, tk.END)
             self.ndbbox.insert(tk.INSERT, self.ndbfile)  # DEBUG
-            self.ndbbox.configure(state=tk.DISABLED)
-
-
+            self.ndbbox.configure(state = tk.DISABLED)
 if __name__ == "__main__":
     root = tk.Tk()
     app = MainGUI(root)
