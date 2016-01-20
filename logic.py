@@ -19,6 +19,8 @@ class Term(object):
     def __eq__(self, term):
         return isinstance(term, Term) and self.name == term.name
 
+    def make_bindings(self, bind_dict): #dn 3erw an iparxei periptwsi na kanoume bind kapoio Term....
+        return self
 
 class Variable(Term):
     new_num = 0  # "static" member to be used in produce_new_name function
@@ -48,13 +50,16 @@ class Variable(Term):
             binding = bind_dict.get(binding)
             closed_set.append(binding)
         # expand the bound relation
+        ''' #--------------------> isws dn xreiazetai etsi afou se oles exoume make_bindings
         if isinstance(binding, Relation):
             return binding.make_bindings(bind_dict)
-        return binding
+        elif isinstance(binding, PList):
+            return binding.make_bindings(bind_dict)
+        '''
+        return binding.make_bindings(bind_dict)
 
     def make_bindings(self,bind_dict):
         return self.get_bindings(bind_dict)
-
 
     @staticmethod
     def produce_new_name(self):
@@ -108,7 +113,6 @@ class Clause(Term):
     def __repr__(self):
         if self.body:
             return '%s :- %s' % (self.head, ', '.join(map(str, self.body)))
-        return str(self.head)
 
     def __eq__(self, clause):
         return isinstance(clause, Clause) and self.head == clause.head and list(self.body) == list(clause.body)
@@ -259,7 +263,7 @@ def fol_bc_ask(KB, goals, unifier):
     # koitame ti einai auto sto opoio t kaloume
 
     for t in KB:#sullegoume ta clauses apo th KB pou exoun idio head me to relation pou theloume na apodeixoume kai kanoume unify wste na vroume ayta pou tairiazoun.
-        t = t.rename_vars()  # TODO
+        t = t.rename_vars() # nomizw einai ok
         new_unif = unify(t.head, b,unifier)
         if not new_unif:
             continue
