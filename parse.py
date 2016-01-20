@@ -82,64 +82,91 @@ class Lexer:
     # to parse multiple lines (in a file maybe) run this until it returns EOF
     # no checking for invalid input is done but it maybe could
     def parse_line(self):
+        print("**********************")
         token = ''
-        #self.char = ''
         term = None
-        self.consume()
 
-        while self.char != EOF and self.char != ENDLINE: # an evaza edw consume 8a t ekane 2 fores! mia gia ton ena elegxo kai mia gia ton allo
+        while self.char != '.' and self.char != EOF and self.char != ENDLINE: # an evaza edw consume 8a t ekane 2 fores! mia gia ton ena elegxo kai mia gia ton allo
             if self.is_comment():
                 self.consume_comment() # an dn exei ENDLINE? prosoxi...
             if self.char == '(': # relation case
-
+                print("in relation")
                 args = []
                 while self.consume() != ')': # exei katanalw8ei?
-                    if self.char == EOF or self.char ==  ENDLINE:
+                    #print(self.char)
+                    if self.char == '.' or self.char == EOF or self.char ==  ENDLINE:
+                        print("97" + self.char)
                         return error
+                    #print("100")
                     args.append(self.parse_line())
-                if token == '':
+                if token == '': #you need a name for the Relation
                     return  error
+
+                print("relation "+token+" created")
                 term = logic.Relation(name = token, arguments = args)
 
+                self.consume()
+
+            elif self.char == '[': # list case
+                print("in list")
+                argums = []
+                while self.consume() != ']':
+                    if self.char == '.' or self.char == EOF or self.char == ENDLINE:
+                        return error
+                    argums.append(self.parse_line())
+                '''if token == '':
+                    return  error'''
+
+                print("list created")
+                term = logic.PList(args = argums)
+
+                if self.is_end_of_term(self.char):
+                    return term
+                else:
+                    self.consume()
+
             elif self.char == ',' or self.is_end_of_term(self.next_char()) or  self.char == '|': # arguments case
+                print("in comma")
+                if self.is_end_of_term(self.next_char()):
+                    print("end of term")
+                    token += self.char
+
+                #self.consume()
 
                 if not term:
                     if token == '':
                         return None
                     elif token.isupper:
+                        print("variable "+token+" created")
                         return logic.Variable(name = token)
                     else:
+                        print("term "+token+" created")
                         return logic.Term(name = token)
 
                 return  term
 
-            elif self.char == '[': # list case
-
-                args = []
-                while self.consume() != ']':
-                    if self.char == EOF or self.consume() == ENDLINE:
-                        return error
-                    args.append(self.parse_line())
-                if token == '':
-                    return  error
-                term = logic.PList(arguments = args)
-
             elif self.char == ':':# clause case
+                print("in clause")
 
                 if self.consume() != '-' or not term:
                     return error
 
                 args = []
 
-                while self.consume()!= EOF and self.consume() != ENDLINE:
+                self.consume()
+                while self.char != '.' and self.char != EOF and self.char != ENDLINE: #mono komata mporei na exei ki auta katanalwnontai ston kwdika tous
                     args.append(self.parse_line())
+                   # self.consume()
 
+                print("clause created")
                 term = logic.Clause(head = term, body = args)
+                print(self.char)
 
             else:
                 token += self.char
                 self.consume()
 
+        print("end of while")
         # eof occurred
         # if term is not assigned to sth you must deal with the token first, create the term and then return it
         if not term:  # term is None ---> maybe check for correct line or sth
@@ -151,8 +178,10 @@ class Lexer:
                 else: return False
 
             if token.isupper():  # then it is a variable
+                print("variable "+token+" created")
                 term = logic.Variable(name=token)
             else:
+                print("term "+token+" created")
                 # the you have just a term (if it was not just a term you would have entered
                 term = logic.Term(name=token)
         return term
