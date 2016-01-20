@@ -3,7 +3,10 @@ import parse
 
 class Term(object):
     def __init__(self, name):
-        self.name = name
+       self.name = name
+
+    def __str__(self):
+        return self.__repr__()
 
     def __repr__(self):
         if self.is_symbol(self.name) and self.name[0].islower():
@@ -27,6 +30,9 @@ class Variable(Term):
 
     def __init__(self, name):
         super(Variable, self).__init__(name)
+
+    def __str__(self):
+        return self.__repr__()
 
     def __repr__(self):
         if self.is_prop_symbol(self.name):
@@ -76,6 +82,10 @@ class Relation(Term):
         super(Relation, self).__init__(name)
         self.args = arguments
 
+
+    def __str__(self):
+        return self.__repr__()
+
     def __repr__(self):
         if super(Relation, self).is_symbol(self.name) and self.name[0].islower() and len(self.args) > 0:
             return '%s(%s)' % (self.name, ', '.join(map(str, self.args)))
@@ -110,6 +120,9 @@ class Clause(Term):
         else:
             self.body = body
 
+    def __str__(self):
+        return  self.__repr__()
+
     def __repr__(self):
         if self.body:
             return '%s :- %s' % (self.head, ', '.join(map(str, self.body)))
@@ -140,6 +153,9 @@ class Clause(Term):
 class PList(Term):
     def __init__(self, args=None):
         self.arguments = args
+
+    def __str__(self):
+        return  self.__repr__()
 
     def __repr__(self):
         return '[%s]' % (', '.join(map(str, self.arguments)))
@@ -246,7 +262,10 @@ def createKB(file):
     #kleisimo arxeiou kapws
     kb = []
     for line in lines:
-        kb.append(parse.Lexer(line).parse_line())  # des mhpws anti gia appand paei extend kalutera.To append einai kalutero otan theloume na prosthesoume ena mono element.Ara asto etsi
+        k = parse.Lexer(line).parse_line()
+        print(type(k))
+        kb.append(k)  # des mhpws anti gia appand paei extend kalutera.To append einai kalutero otan theloume na prosthesoume ena mono element.Ara asto etsi
+
     return kb
 
 

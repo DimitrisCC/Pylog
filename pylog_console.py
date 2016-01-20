@@ -5,24 +5,33 @@ import logic
 flag = True
 kb = []
 unifs = []
+kb_file = ''
 
 while flag:
-    sys.stdout.write(">>>")
-    input = sys.stdin.read(1)
 
-    if input == "listing.":
-        #TODO
-        #print kb
-    elif "load" in input: #dn 3erw kan an sintasetai etsi
-        #TODO
-        #pare to path kai anoi3e t arxeio gia na fortwseis tn kb
-    elif input == '?':
-        #TODO tipwse to epomeno stous enopoiites i no an dn exei allous
-    elif input == "exit":
+    inputt = input(">>>")
+
+    if inputt == "listing.":
+        file = open(filename, 'r')
+        if file:
+            print(file.read())
+            file.close()
+    elif inputt.startswith("load"): #dn 3erw kan an sintasetai etsi
+        kb__file = input.split()[1]
+    elif inputt == '?':
+        if len(unifs) < next_unif:
+            print('no.')
+        else:
+            print(unifs[next_unif])
+            next_unif += 1
+    elif inputt == "exit.":
         flag = False
     else:
-        command = parse.Lexer(input).parse_line()
+        command = parse.Lexer(inputt).parse_line()
         #estw oti dn eixe la8os telos pantwn...kai dn epestrepse error dld
-        unifs = fol_bc_ask(kb, command, {})
-
-        #TODO tipwse tn prwto unifier sto unif....me erwtimatiko 8a tipwseis tn epomeno
+        unifs = logic.fol_bc_ask(kb, command, {})
+        next_unif = 1
+        if len(unifs) == 0 or not unifs[0]:
+            print ('no.')
+        else:
+            print (unifs[0])
