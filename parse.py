@@ -138,7 +138,7 @@ class Lexer:
                 if not term:
                     if token == '':
                         return None
-                    elif token.isupper:
+                    elif token[0].isupper or token[0] == '_':
                         print("variable "+token+" created")
                         return logic.Variable(name = token)
                     else:
@@ -177,9 +177,9 @@ class Lexer:
                     return ENDLINE
                 elif self.char == EOF:
                     return EOF
-                else: return False
+                else: return False #i error
 
-            if token.isupper():  # then it is a variable
+            if token[0].isupper() or token[0] == '_':  # then it is a variable
                 print("variable "+token+" created")
                 term = logic.Variable(name=token)
             else:

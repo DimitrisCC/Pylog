@@ -1,6 +1,5 @@
 import parse
 
-
 class Term(object):
     def __init__(self, name):
        self.name = name
@@ -21,7 +20,8 @@ class Term(object):
 
     def __eq__(self, term):
         return isinstance(term, Term) and self.name == term.name
-
+    
+    #logika mallon 8a t svisoume
     def make_bindings(self, bind_dict): #dn 3erw an iparxei periptwsi na kanoume bind kapoio Term....
         return self
 
@@ -49,6 +49,10 @@ class Variable(Term):
         return hash(self.name)
 
     def get_bindings(self, bind_dict):
+
+        if self not in bind_dict.keys():
+            return Variable(self.name)
+        
         # vars_dict a dictionary -> variable:binding_values
         binding = bind_dict.get(self)
         closed_set = [self, binding]
@@ -56,13 +60,15 @@ class Variable(Term):
             binding = bind_dict.get(binding)
             closed_set.append(binding)
         # expand the bound relation
-        ''' #--------------------> isws dn xreiazetai etsi afou se oles exoume make_bindings
-        if isinstance(binding, Relation):
+
+        #tr na kaneis unify me clause mallon api8ano...
+        if isinstance(binding, Relation) or isinstance(binding, PList):
             return binding.make_bindings(bind_dict)
-        elif isinstance(binding, PList):
-            return binding.make_bindings(bind_dict)
-        '''
-        return binding.make_bindings(bind_dict)
+
+        #mporei na einai apla mia alli metavliti..it's ok
+        if isinstance(binding, Variable):
+            return binding
+
 
     def make_bindings(self,bind_dict):
         return self.get_bindings(bind_dict)
@@ -74,7 +80,7 @@ class Variable(Term):
         return Variable('%s%d' % (self.name, Variable.new_num))
 
     def rename_vars(self):
-        return self.produce_new_name()
+        return self.produce_new_name(self)
 
 
 class Relation(Term):
@@ -96,19 +102,21 @@ class Relation(Term):
 
     def make_bindings(self, bind_dict):
         bound = []
-        for i in range(0, len(self.args)):
-            cur = self.args[i]
-            cur = cur.make_bindings(bind_dict)
-            if not cur:
-                bound.append(arg)
-            else:
-                bound.append(cur)
+        for arg in self.args:
+
+            if isinstance(arg, Relation) or isinstance(arg, Variable) or isinstance(arg, PList):
+                bound.append(arg.make_bindings(bind_dict))
+            elif isinstance(arg, Term):
+                bound.append(arg) # auto mporei na mpei kai sto panw if afou kai i Term exei make_bindings alla ekeini i make_bindings dn exei kai toso noima
+                #gi auto t ekana etsi.....alliws t vazoume panw ok
+            
         return Relation(self.name, bound)
 
     def produce_new_names4vars(self):
         new_names = []
         for arg in self.args:
-            new_names.append(Variable.produce_new_name())
+            if isinstance(arg, Variable):
+                new_names.append(Variable.produce_new_name(arg))
         return new_names
 
     def rename_vars(self):
@@ -133,10 +141,15 @@ class Clause(Term):
         return isinstance(clause, Clause) and self.head == clause.head and list(self.body) == list(clause.body)
 
     def make_bindings(self, bind_dict):
-        head = self.head.make_bindings(bind_dict)
+
+        if isinstance(self.head, Relation):
+            head = self.head.make_bindings(bind_dict)
+            
         body = []
         for rel in self.body:
-            body.append(rel.make_bindings(bind_dict))
+            if isinstance(rel, Relation):
+                body.append(rel.make_bindings(bind_dict))
+                
         return Clause(head, body)
 
     def produce_new_names4vars(self):
@@ -196,7 +209,8 @@ class PList(Term):
     def make_bindings(self, bind_dict):
         body = []
         for term in self.arguments:
-            body.append(term.make_bindings(bind_dict))
+            if isinstance(term,Variable) or isinstance(term, Term) or isinstance(term, PList) or isinstance(term, Relation):
+                body.append(term.make_bindings(bind_dict))
         return PList(body)
 
 
@@ -286,11 +300,21 @@ def fol_bc_ask(KB, goals, unifier):
 
     for t in KB:#sullegoume ta clauses apo th KB pou exoun idio head me to relation pou theloume na apodeixoume kai kanoume unify wste na vroume ayta pou tairiazoun.
         t = t.rename_vars() # nomizw einai ok
-        new_unif = unify(t.head, b,unifier)
-        if not new_unif:
-            continue
+        if isinstance(t, Clause):
+            new_unif = unify(t.head, b,unifier)
+            
+            if not new_unif:
+                continue
+            
+            goals.extend(t.body)  # to extend einai gia na pros8eseis ta stoixeia
+            # mias listas se iparxousa lista
+            ans.append(fol_bc_ask(KB, goals, compose(unifier, new_unif)))
 
-        goals.extend(t.body)  # to extend einai gia na pros8eseis ta stoixeia
-        # mias listas se iparxousa lista
-        ans.append(fol_bc_ask(KB, goals, compose(unifier, new_unif)))
+        if isinstance(t, Relation) or isinstance(t, Term):
+            new_unif = unify(t, b, unifier)
+
+            if not new_unif:
+                continue
+            ans.append(unifier)
+            
     return ans
