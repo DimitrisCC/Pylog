@@ -48,8 +48,8 @@ class MainGUI(tk.Frame):
             self.ndbfile = file.read()
             file.close()
             kb = createKB(filename)
-            for i in range(0, len(kb)):
-                print(kb[i])
+            # for i in range(0, len(kb)):
+             #   print(kb[i])
         if self.ndbfile is not None:
             self.ndbbox.configure(state = tk.NORMAL)
             self.ndbbox.delete(1.0, tk.END)

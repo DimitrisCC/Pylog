@@ -87,9 +87,11 @@ class Lexer:
         term = None
 
         while self.char != '.' and self.char != EOF and self.char != ENDLINE: # an evaza edw consume 8a t ekane 2 fores! mia gia ton ena elegxo kai mia gia ton allo
-            if self.is_comment():
+            if self.char == '':
+                continue
+            elif self.is_comment():
                 self.consume_comment() # an dn exei ENDLINE? prosoxi...
-            if self.char == '(': # relation case
+            elif self.char == '(': # relation case
                 print("in relation")
                 args = []
                 while self.consume() != ')': # exei katanalw8ei?

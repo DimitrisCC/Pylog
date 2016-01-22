@@ -96,11 +96,13 @@ class Relation(Term):
 
     def make_bindings(self, bind_dict):
         bound = []
-        for arg in self.args:
-            if arg in bind_dict:
-                bound.append(arg.get_bindings(bind_dict))
-            else:
+        for i in range(0, len(self.args)):
+            cur = self.args[i]
+            cur = cur.make_bindings(bind_dict)
+            if not cur:
                 bound.append(arg)
+            else:
+                bound.append(cur)
         return Relation(self.name, bound)
 
     def produce_new_names4vars(self):
@@ -259,7 +261,7 @@ def createKB(file):
     # file = a list chars th file contains
     f = open(file, 'r')
     lines = f.readlines()
-    #kleisimo arxeiou kapws
+    f.close()
     kb = []
     for line in lines:
         k = parse.Lexer(line).parse_line()
@@ -273,6 +275,7 @@ def createKB(file):
 
 
 def fol_bc_ask(KB, goals, unifier):
+    print("-------------IN FOL-------------")
     if goals == False:
         return unifier
     ans = []
