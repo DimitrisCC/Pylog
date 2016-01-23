@@ -1,17 +1,17 @@
 import parse
 
+
 class Term(object):
     def __init__(self, name):
-       self.name = name
+        self.name = name
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        if self.is_symbol(self.name) and self.name[0].islower():
-           return str(self.name)
+        return str(self.name)
 
-    def is_symbol(self, s): #-------> pou xreiazetai!?
+    def is_symbol(self, s):  # -------> pou xreiazetai!?
         """A string s is a symbol if it starts with an alphabetic char."""
         return isinstance(s, str) and s[0].isalpha()
 
@@ -20,10 +20,11 @@ class Term(object):
 
     def __eq__(self, term):
         return isinstance(term, Term) and self.name == term.name
-    
-    #logika mallon 8a t svisoume
-    def make_bindings(self, bind_dict): #dn 3erw an iparxei periptwsi na kanoume bind kapoio Term....
+
+    # logika mallon 8a t svisoume
+    def make_bindings(self, bind_dict):  # dn 3erw an iparxei periptwsi na kanoume bind kapoio Term....
         return self
+
 
 class Variable(Term):
     new_num = 0  # "static" member to be used in produce_new_name function
@@ -35,10 +36,9 @@ class Variable(Term):
         return self.__repr__()
 
     def __repr__(self):
-        if self.is_prop_symbol(self.name):
-            return '%s' % str(self.name)
+        return '%s' % str(self.name)
 
-    def is_prop_symbol(self, s): #-------> pou xreiazetai!?
+    def is_prop_symbol(self, s):  # -------> pou xreiazetai!?
         """The first symbol is an uppercase character and the string s is not either TRUE or FALSE."""
         return (super(Variable, self).is_symbol(s) and s[0].isupper() and s != 'TRUE' and s != 'FALSE') or (s[0] == '_')
 
@@ -52,7 +52,7 @@ class Variable(Term):
 
         if self not in bind_dict.keys():
             return Variable(self.name)
-        
+
         # vars_dict a dictionary -> variable:binding_values
         binding = bind_dict.get(self)
         closed_set = [self, binding]
@@ -61,16 +61,15 @@ class Variable(Term):
             closed_set.append(binding)
         # expand the bound relation
 
-        #tr na kaneis unify me clause mallon api8ano...
+        # tr na kaneis unify me clause mallon api8ano...
         if isinstance(binding, Relation) or isinstance(binding, PList):
             return binding.make_bindings(bind_dict)
 
-        #mporei na einai apla mia alli metavliti..it's ok
+        # mporei na einai apla mia alli metavliti..it's ok
         if isinstance(binding, Variable):
             return binding
 
-
-    def make_bindings(self,bind_dict):
+    def make_bindings(self, bind_dict):
         return self.get_bindings(bind_dict)
 
     @staticmethod
@@ -88,14 +87,12 @@ class Relation(Term):
         super(Relation, self).__init__(name)
         self.args = arguments
 
-
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        if super(Relation, self).is_symbol(self.name) and self.name[0].islower() and len(self.args) > 0:
-            return '%s(%s)' % (self.name, ', '.join(map(str, self.args)))
-            # den eimai sigourh an paei str dedomenou oti mporei n einai variable,atom,list
+        return '%s(%s)' % (self.name, ', '.join(map(str, self.args)))
+        # den eimai sigourh an paei str dedomenou oti mporei n einai variable,atom,list
 
     def __eq__(self, relation):
         return isinstance(relation, Relation) and self.name == relation.name and list(self.args) == list(relation.args)
@@ -107,9 +104,10 @@ class Relation(Term):
             if isinstance(arg, Relation) or isinstance(arg, Variable) or isinstance(arg, PList):
                 bound.append(arg.make_bindings(bind_dict))
             elif isinstance(arg, Term):
-                bound.append(arg) # auto mporei na mpei kai sto panw if afou kai i Term exei make_bindings alla ekeini i make_bindings dn exei kai toso noima
-                #gi auto t ekana etsi.....alliws t vazoume panw ok
-            
+                bound.append(
+                    arg)  # auto mporei na mpei kai sto panw if afou kai i Term exei make_bindings alla ekeini i make_bindings dn exei kai toso noima
+                # gi auto t ekana etsi.....alliws t vazoume panw ok
+
         return Relation(self.name, bound)
 
     def produce_new_names4vars(self):
@@ -122,6 +120,7 @@ class Relation(Term):
     def rename_vars(self):
         return Relation(self.name, self.produce_new_names4vars())
 
+
 class Clause(Term):
     def __init__(self, head, body=None):
         self.head = head
@@ -131,7 +130,7 @@ class Clause(Term):
             self.body = body
 
     def __str__(self):
-        return  self.__repr__()
+        return self.__repr__()
 
     def __repr__(self):
         if self.body:
@@ -144,12 +143,12 @@ class Clause(Term):
 
         if isinstance(self.head, Relation):
             head = self.head.make_bindings(bind_dict)
-            
+
         body = []
         for rel in self.body:
             if isinstance(rel, Relation):
                 body.append(rel.make_bindings(bind_dict))
-                
+
         return Clause(head, body)
 
     def produce_new_names4vars(self):
@@ -170,7 +169,7 @@ class PList(Term):
         self.arguments = args
 
     def __str__(self):
-        return  self.__repr__()
+        return self.__repr__()
 
     def __repr__(self):
         return '[%s]' % (', '.join(map(str, self.arguments)))
@@ -189,7 +188,7 @@ class PList(Term):
 
     # def get_sublist(self, pos):
     def __getitem__(self, pos):  # overloading the [] operator
-        if pos > len(self.arguments) or pos == False:
+        if pos > len(self.arguments) or pos is False:
             return PList()
         else:
             if isinstance(pos, slice):
@@ -209,7 +208,8 @@ class PList(Term):
     def make_bindings(self, bind_dict):
         body = []
         for term in self.arguments:
-            if isinstance(term,Variable) or isinstance(term, Term) or isinstance(term, PList) or isinstance(term, Relation):
+            if isinstance(term, Variable) or isinstance(term, Term) or isinstance(term, PList) or isinstance(term,
+                                                                                                             Relation):
                 body.append(term.make_bindings(bind_dict))
         return PList(body)
 
@@ -255,7 +255,7 @@ def compose(unifier1, unifier2):  # ----------> endexetai na mn xreiazetai!!!
 
 def unify(x, y, unifier):
     # Failure
-    if unifier == False:
+    if not unifier:
         return False
     elif x == y:
         return unifier
@@ -279,6 +279,7 @@ def createKB(file):
     kb = []
     for line in lines:
         k = parse.Lexer(line).parse_line()
+        print(k)
         print(type(k))
         kb.append(k)  # des mhpws anti gia appand paei extend kalutera.To append einai kalutero otan theloume na prosthesoume ena mono element.Ara asto etsi
 
@@ -290,7 +291,7 @@ def createKB(file):
 
 def fol_bc_ask(KB, goals, unifier):
     print("-------------IN FOL-------------")
-    if goals == False:
+    if not goals:
         return unifier
     ans = []
 
@@ -298,14 +299,14 @@ def fol_bc_ask(KB, goals, unifier):
     # ---> nai 3erw exei to get alla einai allo to make_bindings + dn xreiazetai na
     # koitame ti einai auto sto opoio t kaloume
 
-    for t in KB:#sullegoume ta clauses apo th KB pou exoun idio head me to relation pou theloume na apodeixoume kai kanoume unify wste na vroume ayta pou tairiazoun.
-        t = t.rename_vars() # nomizw einai ok
+    for t in KB:  # sullegoume ta clauses apo th KB pou exoun idio head me to relation pou theloume na apodeixoume kai kanoume unify wste na vroume ayta pou tairiazoun.
+        t = t.rename_vars()  # nomizw einai ok
         if isinstance(t, Clause):
-            new_unif = unify(t.head, b,unifier)
-            
+            new_unif = unify(t.head, b, unifier)
+
             if not new_unif:
                 continue
-            
+
             goals.extend(t.body)  # to extend einai gia na pros8eseis ta stoixeia
             # mias listas se iparxousa lista
             ans.append(fol_bc_ask(KB, goals, compose(unifier, new_unif)))
@@ -316,5 +317,5 @@ def fol_bc_ask(KB, goals, unifier):
             if not new_unif:
                 continue
             ans.append(unifier)
-            
+
     return ans

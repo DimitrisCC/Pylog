@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 
-import tkinter as tk
-from tkinter import filedialog
-from tkinter import scrolledtext
-from logic import *
-
-
+"""
 class MainGUI(tk.Frame):
     
     def __init__(self, parent):
@@ -59,3 +54,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = MainGUI(root)
     root.mainloop()
+"""

@@ -1,7 +1,7 @@
-import sys
-import parse
-import logic
 import os.path
+
+import logic
+import parse
 
 
 def pylog_console():
@@ -12,9 +12,10 @@ def pylog_console():
 
     while flag:
 
-        inputt = input(">>>")
+        inputt = input(">>> ")
+        inputt.strip()
 
-        if inputt[-1] != '.':
+        if inputt[-1] != '.' and inputt[0:1] == '?-':
             print("Sorry bro you missed the dot! Repeat the command again using a \".\" at the end!")
         elif inputt == "listing.":
             if kb_file != '':
@@ -23,13 +24,13 @@ def pylog_console():
                     print(file.read())
                     file.close()
             else:
-                print("You have not loaded a file yet! Please load your file first with the command\n load <name of your file>")
-                
-        elif inputt.startswith("load"): #dn 3erw kan an sintasetai etsi
+                print("You have not loaded a file yet! Please load your file first with the command\n"
+                      "load <name of your file>")
+
+        elif inputt.startswith("load"):  # dn 3erw kan an sintasetai etsi
             kb_file = inputt.split()[1]
 
-           
-            if kb_file[-4:] != ".pl.":
+            if kb_file[-3:] != ".pl":
                 print("You were supposed to load ONLY PROLOG FILES (.pl)!!! Please try again!!!")
             else:
                 if os.path.exists(kb_file):
@@ -37,14 +38,14 @@ def pylog_console():
                     print("Your file was loaded successfully")
                 else:
                     print("Sorry! The file you tried to access does not exist.")
-            
+
         elif inputt == '?':
             if len(unifs) < next_unif:
                 print('no.')
             else:
                 print(unifs[next_unif])
                 next_unif += 1
-        elif inputt == "exit." :
+        elif inputt == "exit":
             flag = False
         elif '=' in inputt:
             command = inputt.split()
@@ -53,22 +54,22 @@ def pylog_console():
             else:
                 left = parse.Lexer(command[0]).parse_line()
                 right = parse.Lexer(command[2]).parse_line()
-                #estw oti ola kala stn parse_line...
-                unifier = logic.unify(left,right,{})
+                # estw oti ola kala stn parse_line...
+                unifier = logic.unify(left, right, {})
                 if not unifier:
                     print("no.")
                 else:
                     print("yes.")
-        else:
-            command = parse.Lexer(inputt).parse_line()
-            #estw oti dn eixe la8os telos pantwn...kai dn epestrepse error dld
+        elif inputt[0:1] == '?-':
+            stripped = inputt[2:].strip()
+            command = parse.Lexer(stripped).parse_line()
+            # estw oti dn eixe la8os telos pantwn...kai dn epestrepse error dld
             unifs = logic.fol_bc_ask(kb, [command], {})
             next_unif = 1
             if len(unifs) == 0 or not unifs[0]:
-                print ('no.')
+                print('no.')
             else:
-                print (unifs[0])
-
+                print(unifs[0])
 
 
 if __name__ == "__main__":
