@@ -89,6 +89,7 @@ class Lexer:
         while self.char != '.' and self.char != EOF and self.char != ENDLINE:
             # an evaza edw consume 8a t ekane 2 fores! mia gia ton ena elegxo kai mia gia ton allo
             if self.char == ' ':
+                self.consume()
                 continue
             elif self.is_comment():
                 self.consume_comment()  # an dn exei ENDLINE? prosoxi...
@@ -96,11 +97,11 @@ class Lexer:
                 # print("in relation")
                 args = []
                 while self.consume() != ')':  # exei katanalw8ei?
-                    # #print(self.char)
+                    #print(self.char)
                     if self.char == '.' or self.char == EOF or self.char == ENDLINE:
                         # print("97" + self.char)
                         return error
-                    # #print("100")
+                    #print("100")
                     args.append(self.parse_line())
                 if token == '':  # you need a name for the Relation
                     return error
@@ -108,7 +109,10 @@ class Lexer:
                 # print("relation " + token + " created")
                 term = logic.Relation(name=token, arguments=args)
 
-                self.consume()
+                if self.is_end_of_term(self.next_char()):
+                    return term
+                else:
+                    self.consume()
 
             elif self.char == '[':  # list case
                 # print("in list")
@@ -117,13 +121,11 @@ class Lexer:
                     if self.char == '.' or self.char == EOF or self.char == ENDLINE:
                         return error
                     argums.append(self.parse_line())
-                '''if token == '':
-                    return  error'''
 
                 # print("list created")
                 term = logic.PList(args=argums)
 
-                if self.is_end_of_term(self.char):
+                if self.is_end_of_term(self.next_char()):
                     return term
                 else:
                     self.consume()
@@ -133,8 +135,6 @@ class Lexer:
                 if self.is_end_of_term(self.next_char()):
                     # print("end of term")
                     token += self.char
-
-                # self.consume()
 
                 if not term:
                     if token == '':
@@ -159,7 +159,7 @@ class Lexer:
                 self.consume()
                 while self.char != '.' and self.char != EOF and self.char != ENDLINE:  # mono komata mporei na exei ki auta katanalwnontai ston kwdika tous
                     args.append(self.parse_line())
-                    # self.consume()
+                    self.consume()
 
                 # print("clause created")
                 term = logic.Clause(head=term, body=args)
@@ -170,6 +170,7 @@ class Lexer:
                 self.consume()
 
         # print("end of while")
+        
         # eof occurred
         # if term is not assigned to sth you must deal with the token first, create the term and then return it
         if not term:  # term is None ---> maybe check for correct line or sth

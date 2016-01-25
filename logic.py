@@ -279,7 +279,9 @@ def createKB(file):
     kb = []
     for line in lines:
         k = parse.Lexer(line).parse_line()
+        print("------------")
         print(k)
+        print("------------")
         print(type(k))
         kb.append(k)  # des mhpws anti gia appand paei extend kalutera.To append einai kalutero otan theloume na prosthesoume ena mono element.Ara asto etsi
 

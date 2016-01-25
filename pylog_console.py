@@ -9,20 +9,24 @@ def pylog_console():
     kb = []
     unifs = []
     kb_file = ''
+    next_unif = 0
 
     while flag:
 
         inputt = input(">>> ")
-        inputt.strip()
+        inputt.strip('')
 
         if inputt[-1] != '.' and inputt[0:1] == '?-':
             print("Sorry bro you missed the dot! Repeat the command again using a \".\" at the end!")
         elif inputt == "listing.":
+
             if kb_file != '':
-                file = open(kb_file, 'r')
+                '''file = open(kb_file, 'r')
                 if file:
                     print(file.read())
-                    file.close()
+                    file.close()'''
+                for k in kb:
+                    print(k)
             else:
                 print("You have not loaded a file yet! Please load your file first with the command\n"
                       "load <name of your file>")
@@ -60,7 +64,7 @@ def pylog_console():
                     print("no.")
                 else:
                     print("yes.")
-        elif inputt[0:1] == '?-':
+        elif inputt.startswith('?-'):
             stripped = inputt[2:].strip()
             command = parse.Lexer(stripped).parse_line()
             # estw oti dn eixe la8os telos pantwn...kai dn epestrepse error dld
@@ -70,6 +74,7 @@ def pylog_console():
                 print('no.')
             else:
                 print(unifs[0])
+                print('yes.')
 
 
 if __name__ == "__main__":
