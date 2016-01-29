@@ -139,7 +139,7 @@ class Lexer:
                 if not term:
                     if token == '':
                         return None
-                    elif token[0].isupper or token[0] == '_':
+                    elif token[0].isupper() or token[0] == '_':
                         # print("variable " + token + " created")
                         return logic.Variable(name=token)
                     else:

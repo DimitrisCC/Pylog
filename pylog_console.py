@@ -21,10 +21,7 @@ def pylog_console():
         elif inputt == "listing.":
 
             if kb_file != '':
-                '''file = open(kb_file, 'r')
-                if file:
-                    print(file.read())
-                    file.close()'''
+                
                 for k in kb:
                     print(k)
             else:
@@ -44,7 +41,7 @@ def pylog_console():
                     print("Sorry! The file you tried to access does not exist.")
 
         elif inputt == '?':
-            if len(unifs) < next_unif:
+            if len(unifs) - 1 < next_unif:
                 print('no.')
             else:
                 print(unifs[next_unif])
@@ -70,7 +67,7 @@ def pylog_console():
             # estw oti dn eixe la8os telos pantwn...kai dn epestrepse error dld
             unifs = logic.fol_bc_ask(kb, [command], {})
             next_unif = 1
-            if len(unifs) == 0 or not unifs[0]:
+            if not unifs or unifs[0] is False:
                 print('no.')
             else:
                 print(unifs[0])
