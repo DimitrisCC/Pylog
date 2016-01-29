@@ -28,6 +28,9 @@ class Term(object):
     def make_bindings(self, bind_dict):  # dn 3erw an iparxei periptwsi na kanoume bind kapoio Term....
         return Term(self.name)
 
+    def getVars(self):
+        return None
+
 
 class Variable(Term):
     new_num = 0  # "static" member to be used in produce_new_name function
@@ -52,7 +55,7 @@ class Variable(Term):
         return hash(self.name)
 
     def get_bindings(self, bind_dict):
-        print(self.name)
+        # print(self.name)
         if self not in bind_dict.keys():
             return Variable(self.name) # test---> self
 
@@ -87,6 +90,10 @@ class Variable(Term):
         else:
             renamed_dict[self] = self.produce_new_name(self)
         return renamed_dict[self]
+
+    
+    def getVars(self):
+        return self
 
 
 class Relation(Term):
@@ -125,6 +132,13 @@ class Relation(Term):
 
     def rename_vars(self, renamed_dict):
         return Relation(self.name, self.produce_new_names4vars(renamed_dict))
+
+    def getVars(self):
+        vars = []
+        for v in self.args:
+            vars.append(v.getVars())
+
+        return vars
 
 
 class Clause(Term):
@@ -166,6 +180,13 @@ class Clause(Term):
     def rename_vars(self, renamed_dict):
         
         return Clause(self.head.rename_vars(renamed_dict), self.produce_new_names4vars(renamed_dict))
+
+    def getVars(self):
+        vars = self.head.getVars()
+        for v in self.body:
+            vars.append(v.getVars())
+
+        return vars
 
 
 # renaming to be used in proving goals
@@ -220,6 +241,12 @@ class PList(Term):
                 body.append(term.make_bindings(bind_dict))
         return PList(body)
 
+    def getVars(self):
+        vars = []
+        for v in self.arguments:
+            vars.append(v.getVars())
+
+        return vars
 
 def unify_var(var, expr, unifier):
     if var in unifier:
@@ -257,8 +284,8 @@ def compose(unifier1, unifier2):  # ----------> endexetai na mn xreiazetai!!!
     # --> dn xreiazetai an ginetai na kanoume apeu8eias extend se dictionaries omws dn t epsa3a poli
     for i in unifier2.items():
         unifier1 = extend(unifier1, i[0], i[1])
-    print("in compose")
-    print(unifier1)
+    # print("in compose")
+    # print(unifier1)
     return unifier1
 
 
@@ -303,34 +330,48 @@ def createKB(file):
 
 
 def fol_bc_ask(KB, goals, unifier):
-    print("-------------IN FOL-------------")
+    # print("-------------IN FOL-------------")
     if not goals:
         return unifier
     ans = []
 
-    b = goals.pop(0).make_bindings(unifier)  # TODO --> make_bindings for Variable
+    b = goals[0].make_bindings(unifier)  # TODO --> make_bindings for Variable
     # ---> nai 3erw exei to get alla einai allo to make_bindings + dn xreiazetai na
     # koitame ti einai auto sto opoio t kaloume
-    print(b)
+    # print(b)
 
     for t in KB:  # sullegoume ta clauses apo th KB pou exoun idio head me to relation pou theloume na apodeixoume kai kanoume unify wste na vroume ayta pou tairiazoun.
         t = t.rename_vars({})  # nomizw einai ok
         if isinstance(t, Clause):
-            print('checking the CLAUSE '+str(t))
+            # print('checking the CLAUSE '+str(t))
             new_unif = unify(t.head, b, unifier)
-            print(new_unif)
-            if new_unif is False:
-                continue
-
-            goals.extend(t.body)  # to extend einai gia na pros8eseis ta stoixeia
-            # mias listas se iparxousa lista
-            ans.append(fol_bc_ask(KB, goals, compose(unifier, new_unif)))
-
-        if isinstance(t, Relation) or isinstance(t, Term): #tqra akiri metavliti mesa stn vasi gnwsis diskolo
-            new_unif = unify(t, b, unifier)
             if new_unif is False:
                 continue
             
-            ans.append(unifier)
+            # print(new_unif)
+            goals.extend(t.body)  # to extend einai gia na pros8eseis ta stoixeia
+            # mias listas se iparxousa lista
+            x = fol_bc_ask(KB, goals[1:], compose(unifier, new_unif))
+            if isinstance(x, list):
+                ans.extend(x)
+            else:
+                ans.append(x)
 
+        if isinstance(t, Relation) or isinstance(t, Term): #tqra akiri metavliti mesa stn vasi gnwsis diskolo
+            
+            # print('checking '+str(t))
+            new_unif = unify(t, b, unifier)
+            if new_unif is False:
+                continue
+            # print(new_unif)
+            
+            # print("before append "+str(ans))
+            x = fol_bc_ask(KB, goals[1:], compose(unifier, new_unif))
+            if isinstance(x, list):
+                ans.extend(x)
+            else:
+                ans.append(x)
+            # print("after append "+str(ans))
+            
+    # print(ans)
     return ans

@@ -8,6 +8,7 @@ def pylog_console():
     flag = True
     kb = []
     unifs = []
+    vars = []
     kb_file = ''
     next_unif = 0
 
@@ -41,11 +42,8 @@ def pylog_console():
                     print("Sorry! The file you tried to access does not exist.")
 
         elif inputt == '?':
-            if len(unifs) - 1 < next_unif:
-                print('no.')
-            else:
-                print(unifs[next_unif])
-                next_unif += 1
+            printNextUnif(unifs, vars, next_unif) 
+            next_unif += 1
         elif inputt == "exit":
             flag = False
         elif '=' in inputt:
@@ -57,21 +55,32 @@ def pylog_console():
                 right = parse.Lexer(command[2]).parse_line()
                 # estw oti ola kala stn parse_line...
                 unifier = logic.unify(left, right, {})
-                if not unifier:
+                if unifier is False:
                     print("no.")
                 else:
                     print("yes.")
         elif inputt.startswith('?-'):
             stripped = inputt[2:].strip()
             command = parse.Lexer(stripped).parse_line()
+            vars = command.getVars()
             # estw oti dn eixe la8os telos pantwn...kai dn epestrepse error dld
             unifs = logic.fol_bc_ask(kb, [command], {})
             next_unif = 1
             if not unifs or unifs[0] is False:
                 print('no.')
             else:
-                print(unifs[0])
+                printNextUnif(unifs, vars, 0)
                 print('yes.')
+
+
+def printNextUnif(unifiers, variables, index):
+    
+    if len(unifiers) - 1 < index:
+        print('no.')
+    else:
+        for v in variables:
+            print(str(v)+" = "+str(v.get_bindings(unifiers[index])))
+            
 
 
 if __name__ == "__main__":
