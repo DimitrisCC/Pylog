@@ -79,7 +79,8 @@ def printNextUnif(unifiers, variables, index):
         print('no.')
     else:
         for v in variables:
-            print(str(v)+" = "+str(v.get_bindings(unifiers[index])))
+            if v is not None:
+                print(str(v) + " = " + str(v.get_bindings(unifiers[index])))
             
 
 
