@@ -81,6 +81,7 @@ class Lexer:
     # it parses only one line
     # to parse multiple lines (in a file maybe) run this until it returns EOF
     # no checking for invalid input is done but it maybe could
+    has_bar = False
     def parse_line(self):
         # print("**********************")
         token = ''
@@ -117,13 +118,17 @@ class Lexer:
             elif self.char == '[':  # list case
                 # print("in list")
                 argums = []
+                has_bar = False
                 while self.consume() != ']':
                     if self.char == '.' or self.char == EOF or self.char == ENDLINE:
                         return error
                     argums.append(self.parse_line())
 
                 # print("list created")
-                term = logic.PList(args=argums)
+                if not argums:
+                    term = logic.PList()
+                else:
+                    term = logic.PList(head=argums[0], tail=argums[1:], has_bar = has_bar)
 
                 if self.is_end_of_term(self.next_char()):
                     return term
@@ -131,6 +136,8 @@ class Lexer:
                     self.consume()
 
             elif self.char == ',' or self.is_end_of_term(self.next_char()) or self.char == '|':  # arguments case
+                if self.char == '|':
+                    has_bar = True
                 # print("in comma")
                 if self.is_end_of_term(self.next_char()):
                     # print("end of term")

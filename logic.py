@@ -193,57 +193,76 @@ class Clause(Term):
 
 
 class PList(Term):
-    def __init__(self, args=None):
-        self.arguments = args
+    def __init__(self, head = None , tail = [] , has_bar = False):
+        self.head = head
+        self.tail = tail
+        self.has_bar = has_bar
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return '[%s]' % (', '.join(map(str, self.arguments)))
+        if self.is_empty():
+            return '[]'
+        if self.has_bar:
+            return '[%s|%s]' % (str(self.head),', '.join(map(str, self.tail)))
+            # 8elei ftia3imo wste otan to tail einai ista na vazei kai [ ] kai otan einai metavliti na mn vazei
+        else:
+            return '[%s, %s]' % (str(self.head),', '.join(map(str, self.tail)))
 
     def __eq__(self, alist):
-        return isinstance(alist, PList) and self.arguments == list(alist.arguments)
+        return isinstance(alist, PList) and self.head == alist.head and self.tail == alist.tail
+        # evgala ena casting se list, den 3erw an xreiazetai
 
     def is_empty(self):
-        return self.arguments is None
+        return self.head == None
 
-    def first_arg(self):
+
+    '''
+    def get_head(self):
         if self.is_empty():
             return None
         else:
-            return self.arguments[0]
-
+            return self.head
+    '''
+    '''
     # def get_sublist(self, pos):
     def __getitem__(self, pos):  # overloading the [] operator
-        if pos > len(self.arguments) or pos is False:
+        if pos.start > len(self.arguments)-1 or pos is False:
+            print("empty list")
             return PList()
         else:
             if isinstance(pos, slice):
                 if pos.step is not None:
                     return PList(self.arguments[pos.start:pos.step:pos.stop])
                 else:
+                    print(self.arguments[pos.start:pos.stop])
                     return PList(self.arguments[pos.start:pos.stop])
             else:
-                return self.arguments[pos]
+                print("here")
+                return self.arguments[pos] '''
 
     def rename_vars(self, renamed_dict):
+        if self.is_empty():
+            return self
+        
+        new_head =self.head.rename_vars(renamed_dict)
         renamed = []
-        for arg in self.arguments:
+        for arg in self.tail:
             renamed.append(arg.rename_vars(renamed_dict))
-        return PList(renamed)
+        return PList(new_head, renamed, self.has_bar)
 
     def make_bindings(self, bind_dict):
         body = []
-        for term in self.arguments:
+        for term in self.tail:
             if isinstance(term, Variable) or isinstance(term, Term) or isinstance(term, PList) or isinstance(term,
                                                                                                              Relation):
                 body.append(term.make_bindings(bind_dict))
-        return PList(body)
+        return PList(self.head.make_bindings(bind_dict), body, self.has_bar)
 
     def getVars(self):
-        vars = []
-        for v in self.arguments:
+        vars = self.head.getVars()
+        for v in self.tail:
             vars.append(v.getVars())
 
         return vars
@@ -266,8 +285,9 @@ def occur_check(var, x):
         return True
     elif isinstance(x, Relation) and var in x.args:
         return True
-    elif isinstance(x, PList) and var in x.arguments:
-        return True
+    elif isinstance(x, PList):
+        if var in x.tail or var in x.head:
+            return True
     return False
 
 
@@ -291,6 +311,8 @@ def compose(unifier1, unifier2):  # ----------> endexetai na mn xreiazetai!!!
 
 def unify(x, y, unifier):
     # Failure
+    # print(x)
+    # print(y)
     if unifier is False:
         return False
     elif x == y:
@@ -301,11 +323,16 @@ def unify(x, y, unifier):
         return unify_var(y, x, unifier)
     elif isinstance(x, Relation) and isinstance(y, Relation) and len(x.args) == len(y.args):
         return unify(x.args, y.args, unify(x.name, y.name, unifier))
-    elif isinstance(x, PList) and isinstance(y, PList) and len(x.arguments) == len(y.arguments):
-        return unify(x[1:], y[1:], unify(x.first_arg(), y.first_arg(), unifier))
+    elif isinstance(x, PList) and isinstance(y, PList): # and len(x.arguments) == len(y.arguments):
+
+        print("UNIFY------------------------------> PList")
+        return unify(x.tail, y.tail, unify(x.head, y.head, unifier))
     elif isinstance(x, list) and isinstance(y, list): # exoume idi koita3ei pio panw gia idio ari8mo arguments
+        
+        print("UNIFY------------------------------>  listes")
         return unify(x[1:], y[1:], unify(x[0], y[0], unifier))
     else:
+        print("Flash")
         return False
 
 
@@ -343,12 +370,12 @@ def fol_bc_ask(KB, goals, unifier):
     for t in KB:  # sullegoume ta clauses apo th KB pou exoun idio head me to relation pou theloume na apodeixoume kai kanoume unify wste na vroume ayta pou tairiazoun.
         t = t.rename_vars({})  # nomizw einai ok
         if isinstance(t, Clause):
-            # print('checking the CLAUSE '+str(t))
+            print('checking the CLAUSE '+str(t))
             new_unif = unify(t.head, b, unifier)
             if new_unif is False:
                 continue
             
-            # print(new_unif)
+            print(new_unif)
             goals.extend(t.body)  # to extend einai gia na pros8eseis ta stoixeia
             # mias listas se iparxousa lista
             x = fol_bc_ask(KB, goals[1:], compose(unifier, new_unif))
@@ -359,11 +386,12 @@ def fol_bc_ask(KB, goals, unifier):
 
         if isinstance(t, Relation) or isinstance(t, Term): #tqra akiri metavliti mesa stn vasi gnwsis diskolo
             
-            # print('checking '+str(t))
+            print('checking '+str(t))
             new_unif = unify(t, b, unifier)
             if new_unif is False:
+                print("FALSE UNIF")
                 continue
-            # print(new_unif)
+            print(new_unif)
             
             # print("before append "+str(ans))
             x = fol_bc_ask(KB, goals[1:], compose(unifier, new_unif))
