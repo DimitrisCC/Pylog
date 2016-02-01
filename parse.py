@@ -99,10 +99,10 @@ class Lexer:
             if self.is_end():
                 # raise CommandException('list', 'You probably forgot \']\'')
                 return error
-            if self.next_char() == '|':
-                has_b = True
                         
             argums.append(self.parse_line())
+            if self.char == '|':
+                has_b = True
 
         if not argums:
             return logic.PList()
@@ -133,7 +133,7 @@ class Lexer:
         return logic.Clause(head=head, body=args)
 
     def is_argument(self):
-        return self.char == ',' or self.is_end_of_term() or self.char == '|'
+        return self.char == ',' or self.char == '|' or self.is_end_of_term() 
 
     def consume_var_or_term(self, token):
         if token == '':
