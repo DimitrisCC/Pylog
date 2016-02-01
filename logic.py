@@ -29,7 +29,7 @@ class Term(object):
         return Term(self.name)
 
     def getVars(self):
-        return None
+        return []
 
 
 class Variable(Term):
@@ -93,7 +93,7 @@ class Variable(Term):
 
     
     def getVars(self):
-        return self
+        return [self]
 
 
 class Relation(Term):
@@ -136,7 +136,7 @@ class Relation(Term):
     def getVars(self):
         vars = []
         for v in self.args:
-            vars.append(v.getVars())
+            vars.extend(v.getVars())
 
         return vars
 
@@ -184,7 +184,7 @@ class Clause(Term):
     def getVars(self):
         vars = self.head.getVars()
         for v in self.body:
-            vars.append(v.getVars())
+            vars.extend(v.getVars())
 
         return vars
 
@@ -198,6 +198,14 @@ class PList(Term):
         self.tail = tail
         self.has_bar = has_bar
 
+    def get_tail(self):
+        if self.has_bar:
+            return self.tail
+        elif self.is_empty() or self.tail == []:
+            return PList()
+        else:
+            return PList(head = self.tail[0], tail = self.tail[1:])
+
     def __str__(self):
         return self.__repr__()
 
@@ -205,8 +213,10 @@ class PList(Term):
         if self.is_empty():
             return '[]'
         if self.has_bar:
-            return '[%s|%s]' % (str(self.head),', '.join(map(str, self.tail)))
+            return '[%s|%s]' % (str(self.head),str(self.tail))
             # 8elei ftia3imo wste otan to tail einai ista na vazei kai [ ] kai otan einai metavliti na mn vazei
+        elif self.tail == []:
+            return '[%s]' % (str(self.head))           
         else:
             return '[%s, %s]' % (str(self.head),', '.join(map(str, self.tail)))
 
@@ -247,29 +257,52 @@ class PList(Term):
             return self
         
         new_head =self.head.rename_vars(renamed_dict)
-        renamed = []
+       
+        if isinstance(self.tail,Variable):
+            return PList(new_head, self.tail.rename_vars(renamed_dict), self.has_bar)
+        
+        renamed = [] 
         for arg in self.tail:
             renamed.append(arg.rename_vars(renamed_dict))
         return PList(new_head, renamed, self.has_bar)
 
     def make_bindings(self, bind_dict):
-        body = []
-        for term in self.tail:
-            if isinstance(term, Variable) or isinstance(term, Term) or isinstance(term, PList) or isinstance(term,
-                                                                                                             Relation):
-                body.append(term.make_bindings(bind_dict))
+        if self.is_empty():
+            return self
+
+        if self.has_bar:
+            body = self.tail.make_bindings(bind_dict)
+        else:
+            body = []
+            for term in self.tail:
+                if isinstance(term, Variable) or isinstance(term, Term) or isinstance(term, PList) or isinstance(term,
+                                                                                                                 Relation):
+                    body.append(term.make_bindings(bind_dict))
+                    
         return PList(self.head.make_bindings(bind_dict), body, self.has_bar)
 
     def getVars(self):
         vars = self.head.getVars()
-        for v in self.tail:
-            vars.append(v.getVars())
+
+        if self.has_bar:
+            if self.tail != []:
+                vars.extend(self.tail.getVars())
+        else:
+            for v in self.tail:
+                vars.extend(v.getVars())
 
         return vars
 
 def unify_var(var, expr, unifier):
     if var in unifier:
         return unify(unifier[var], expr, unifier)
+    elif isinstance(expr, PList):
+        # if expr.has_bar:
+        #    return extend(unifier, var, PList(expr.head, expr.tail, False))
+        # else:
+        return extend(unifier, var, expr)
+    elif isinstance(expr, list):
+        return extend(unifier, var, expr)
     elif expr in unifier:
         return unify(var, unifier[expr], unifier)
     elif occur_check(var, expr):
@@ -324,15 +357,22 @@ def unify(x, y, unifier):
     elif isinstance(x, Relation) and isinstance(y, Relation) and len(x.args) == len(y.args):
         return unify(x.args, y.args, unify(x.name, y.name, unifier))
     elif isinstance(x, PList) and isinstance(y, PList): # and len(x.arguments) == len(y.arguments):
-
-        print("UNIFY------------------------------> PList")
-        return unify(x.tail, y.tail, unify(x.head, y.head, unifier))
+        if x.is_empty() and y.is_empty():
+            #print("both empty")
+            return unifier
+        if x.is_empty():
+            # print("x empty")
+            return False
+        elif y.is_empty():
+            # print("y empty")
+            return False
+        # print("UNIFY------------------------------> PList")
+        return unify(x.get_tail(), y.get_tail(), unify(x.head, y.head, unifier))
     elif isinstance(x, list) and isinstance(y, list): # exoume idi koita3ei pio panw gia idio ari8mo arguments
-        
-        print("UNIFY------------------------------>  listes")
+        # print("UNIFY------------------------------>  listes")
         return unify(x[1:], y[1:], unify(x[0], y[0], unifier))
     else:
-        print("Flash")
+        # print("Flash")
         return False
 
 
@@ -370,12 +410,12 @@ def fol_bc_ask(KB, goals, unifier):
     for t in KB:  # sullegoume ta clauses apo th KB pou exoun idio head me to relation pou theloume na apodeixoume kai kanoume unify wste na vroume ayta pou tairiazoun.
         t = t.rename_vars({})  # nomizw einai ok
         if isinstance(t, Clause):
-            print('checking the CLAUSE '+str(t))
+            # print('checking the CLAUSE '+str(t))
             new_unif = unify(t.head, b, unifier)
             if new_unif is False:
                 continue
             
-            print(new_unif)
+            # print(new_unif)
             goals.extend(t.body)  # to extend einai gia na pros8eseis ta stoixeia
             # mias listas se iparxousa lista
             x = fol_bc_ask(KB, goals[1:], compose(unifier, new_unif))
@@ -386,12 +426,12 @@ def fol_bc_ask(KB, goals, unifier):
 
         if isinstance(t, Relation) or isinstance(t, Term): #tqra akiri metavliti mesa stn vasi gnwsis diskolo
             
-            print('checking '+str(t))
+            # print('checking '+str(t))
             new_unif = unify(t, b, unifier)
             if new_unif is False:
-                print("FALSE UNIF")
+                # print("FALSE UNIF")
                 continue
-            print(new_unif)
+           # print(new_unif)
             
             # print("before append "+str(ans))
             x = fol_bc_ask(KB, goals[1:], compose(unifier, new_unif))
@@ -401,5 +441,5 @@ def fol_bc_ask(KB, goals, unifier):
                 ans.append(x)
             # print("after append "+str(ans))
             
-    # print(ans)
+    #print(ans)
     return ans

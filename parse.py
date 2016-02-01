@@ -67,6 +67,9 @@ class Lexer:
                 return error
         return False
 
+    def is_end(self):
+        return (self.char == '.' or self.char == EOF or self.char == ENDLINE)
+
     def next_char(self):
         if self.pos + 1 > len(self.line) - 1:
             return EOF
@@ -81,15 +84,15 @@ class Lexer:
     # it parses only one line
     # to parse multiple lines (in a file maybe) run this until it returns EOF
     # no checking for invalid input is done but it maybe could
-    has_bar = False
+    
     def parse_line(self):
         # print("**********************")
         token = ''
         term = None
 
-        while self.char != '.' and self.char != EOF and self.char != ENDLINE:
+        while not self.is_end():
             # an evaza edw consume 8a t ekane 2 fores! mia gia ton ena elegxo kai mia gia ton allo
-            if self.char == ' ':
+            if self.is_whitespace():
                 self.consume()
                 continue
             elif self.is_comment():
@@ -99,7 +102,7 @@ class Lexer:
                 args = []
                 while self.consume() != ')':  # exei katanalw8ei?
                     #print(self.char)
-                    if self.char == '.' or self.char == EOF or self.char == ENDLINE:
+                    if self.is_end():
                         # print("97" + self.char)
                         return error
                     #print("100")
@@ -118,17 +121,26 @@ class Lexer:
             elif self.char == '[':  # list case
                 # print("in list")
                 argums = []
-                has_bar = False
+                has_b = False
                 while self.consume() != ']':
-                    if self.char == '.' or self.char == EOF or self.char == ENDLINE:
+                    if self.is_end():
                         return error
+                    if self.next_char() == '|':
+                        has_b = True
+                        
                     argums.append(self.parse_line())
+                    
 
                 # print("list created")
                 if not argums:
                     term = logic.PList()
                 else:
-                    term = logic.PList(head=argums[0], tail=argums[1:], has_bar = has_bar)
+                    #ipo8etw pws dn exei la8i to command
+                    if has_b:
+                        term = logic.PList(head=argums[0], tail=argums[1], has_bar = has_b)
+                            
+                    else:    
+                        term = logic.PList(head=argums[0], tail=argums[1:], has_bar = has_b)
 
                 if self.is_end_of_term(self.next_char()):
                     return term
@@ -136,8 +148,7 @@ class Lexer:
                     self.consume()
 
             elif self.char == ',' or self.is_end_of_term(self.next_char()) or self.char == '|':  # arguments case
-                if self.char == '|':
-                    has_bar = True
+                
                 # print("in comma")
                 if self.is_end_of_term(self.next_char()):
                     # print("end of term")
@@ -164,7 +175,7 @@ class Lexer:
                 args = []
 
                 self.consume()
-                while self.char != '.' and self.char != EOF and self.char != ENDLINE:  # mono komata mporei na exei ki auta katanalwnontai ston kwdika tous
+                while not self.is_end():  # mono komata mporei na exei ki auta katanalwnontai ston kwdika tous
                     args.append(self.parse_line())
                     self.consume()
 
