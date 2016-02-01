@@ -431,7 +431,7 @@ def fol_bc_ask(KB, goals, unifier):
             if new_unif is False:
                 # print("FALSE UNIF")
                 continue
-           # print(new_unif)
+            # print(new_unif)
             
             # print("before append "+str(ans))
             x = fol_bc_ask(KB, goals[1:], compose(unifier, new_unif))
