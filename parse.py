@@ -34,12 +34,14 @@ class Lexer:
 
     def get_identifier(self):
         identifier = ''
-        identifier += self.consume()
-        if self.is_letter():
-            raise "Not a correct identifier"
-        identifier += self.consume()
-        while self.is_alpharethmetic():
-            identifier += self.consume()
+        if not self.is_letter() and self.char != '_':
+            # raise CommandException('identifier', 'Your identifiers should start either with letter or with \'_\'')
+            return error
+        
+        while self.is_alpharethmetic() and not self.is_end_of_term():
+            identifier += self.char
+            self.consume()
+            
         return identifier
 
     def consume(self):
@@ -54,18 +56,9 @@ class Lexer:
         return self.char == '%'
 
     def consume_comment(self):
-        while self.char != ENDLINE:
+        while (self.char != ENDLINE and self.char != EOF):
             self.consume()
 
-    def is_if(self):
-        if self.char == ':':
-            self.consume()
-            if self.char == '-':
-                self.consume()
-                return True
-            else:
-                return error
-        return False
 
     def is_end(self):
         return (self.char == '.' or self.char == EOF or self.char == ENDLINE)
@@ -76,135 +69,160 @@ class Lexer:
         else:
             return self.line[self.pos + 1]
 
-    def is_end_of_term(self, char):
-        return char == ')' or char == ']'
+    def is_end_of_term(self):
+        return self.next_char() == ')' or self.next_char() == ']'
 
-    # class Parser:
+    def is_relation(self):
+        return self.char == '('
+
+    def consume_relation(self, relation_name):
+        args = []
+        while self.consume() != ')': 
+            if self.is_end():
+                # raise CommandException('relation', 'You probably forgot \')\'')
+                return error
+            args.append(self.parse_line())
+            
+        if relation_name == '':  # you need a name for the Relation
+            # raise CommandException('relation', 'Your relation should have a name')
+            return error
+
+        return logic.Relation(name=relation_name, arguments=args)
+
+    def is_list(self):
+        return self.char == '['
+
+    def consume_list(self):
+        argums = []
+        has_b = False
+        while self.consume() != ']':
+            if self.is_end():
+                # raise CommandException('list', 'You probably forgot \']\'')
+                return error
+            if self.next_char() == '|':
+                has_b = True
+                        
+            argums.append(self.parse_line())
+
+        if not argums:
+            return logic.PList()
+        else:
+            #ipo8etw pws dn exei la8i to command
+            if has_b:
+                return logic.PList(head=argums[0], tail=argums[1], has_bar = has_b)             
+            else:    
+                return logic.PList(head=argums[0], tail=argums[1:], has_bar = has_b)
+
+    def is_clause(self):
+        return self.char == ':' and self.next_char() == '-'
+
+    def consume_clause(self, head):
+        self.consume() # consuming ':'
+
+        if not head:
+            # raise CommandException('clause', 'Your clause should have a term before \':-\'')
+            return error
+        
+        args = []
+        
+        self.consume() # consuming '-'
+        while not self.is_end():
+            args.append(self.parse_line())
+            self.consume()
+
+        return logic.Clause(head=head, body=args)
+
+    def is_argument(self):
+        return self.char == ',' or self.is_end_of_term() or self.char == '|'
+
+    def consume_var_or_term(self, token):
+        if token == '':
+            # raise CommandException('variable or term', 'You forgot the variable or term')
+            return error
+        elif token[0].isupper() or token[0] == '_':
+            return logic.Variable(name=token)
+        else:
+            return logic.Term(name=token)
+    
+            
+
+    # Parser:
 
     # it parses only one line
     # to parse multiple lines (in a file maybe) run this until it returns EOF
     # no checking for invalid input is done but it maybe could
     
     def parse_line(self):
-        # print("**********************")
         token = ''
         term = None
 
         while not self.is_end():
-            # an evaza edw consume 8a t ekane 2 fores! mia gia ton ena elegxo kai mia gia ton allo
             if self.is_whitespace():
                 self.consume()
                 continue
             elif self.is_comment():
                 self.consume_comment()  # an dn exei ENDLINE? prosoxi...
-            elif self.char == '(':  # relation case
-                # print("in relation")
-                args = []
-                while self.consume() != ')':  # exei katanalw8ei?
-                    #print(self.char)
-                    if self.is_end():
-                        # print("97" + self.char)
-                        return error
-                    #print("100")
-                    args.append(self.parse_line())
-                if token == '':  # you need a name for the Relation
-                    return error
+            elif self.is_relation():
+                term = self.consume_relation(token)
 
-                # print("relation " + token + " created")
-                term = logic.Relation(name=token, arguments=args)
-
-                if self.is_end_of_term(self.next_char()):
+                if self.is_end_of_term():
                     return term
                 else:
                     self.consume()
 
-            elif self.char == '[':  # list case
-                # print("in list")
-                argums = []
-                has_b = False
-                while self.consume() != ']':
-                    if self.is_end():
-                        return error
-                    if self.next_char() == '|':
-                        has_b = True
-                        
-                    argums.append(self.parse_line())
-                    
+            elif self.is_list():
+                term = self.consume_list()
 
-                # print("list created")
-                if not argums:
-                    term = logic.PList()
-                else:
-                    #ipo8etw pws dn exei la8i to command
-                    if has_b:
-                        term = logic.PList(head=argums[0], tail=argums[1], has_bar = has_b)
-                            
-                    else:    
-                        term = logic.PList(head=argums[0], tail=argums[1:], has_bar = has_b)
-
-                if self.is_end_of_term(self.next_char()):
+                if self.is_end_of_term():
                     return term
                 else:
                     self.consume()
 
-            elif self.char == ',' or self.is_end_of_term(self.next_char()) or self.char == '|':  # arguments case
+            elif self.is_argument():  # arguments case
                 
-                # print("in comma")
-                if self.is_end_of_term(self.next_char()):
-                    # print("end of term")
+                if self.is_end_of_term():
                     token += self.char
 
                 if not term:
-                    if token == '':
-                        return None
-                    elif token[0].isupper() or token[0] == '_':
-                        # print("variable " + token + " created")
-                        return logic.Variable(name=token)
-                    else:
-                        # print("term " + token + " created")
-                        return logic.Term(name=token)
-
+                    term = self.consume_var_or_term(token)
+                    
                 return term
 
-            elif self.char == ':':  # clause case
-                # print("in clause")
-
-                if self.consume() != '-' or not term:
-                    return error
-
-                args = []
-
-                self.consume()
-                while not self.is_end():  # mono komata mporei na exei ki auta katanalwnontai ston kwdika tous
-                    args.append(self.parse_line())
-                    self.consume()
-
-                # print("clause created")
-                term = logic.Clause(head=term, body=args)
-                # print(self.char)
+            elif self.is_clause():
+                term = self.consume_clause(term)
 
             else:
-                token += self.char
-                self.consume()
+                token = self.get_identifier()
 
-        # print("end of while")
         
         # eof occurred
         # if term is not assigned to sth you must deal with the token first, create the term and then return it
         if not term:  # term is None ---> maybe check for correct line or sth
-            if token == '':
+            term = self.consume_var_or_term(token)
+            if term == error:
                 if self.char == ENDLINE:
                     return ENDLINE
                 elif self.char == EOF:
                     return EOF
                 else:
-                    return False  # i error
+                    return error
 
-            if token[0].isupper() or token[0] == '_':  # then it is a variable
-                # print("variable " + token + " created")
-                term = logic.Variable(name=token)
-            else:
-                # print("term " + token + " created")
-                # the you have just a term (if it was not just a term you would have entered
-                term = logic.Term(name=token)
+            
         return term
+
+
+    
+class CommandException(Exception):
+    """Exception raised when wrong commands occur.
+
+    Attributes:
+        cmd -- type of command in which the error occurred
+        msg -- explanation of the error
+    """
+
+    def __init__(self, cmd_type, msg):
+        self.cmd = cmd_type
+        self.msg = msg
+        
+    def __str__(self):
+        return 'Command Exception\ncommand type: '+self.cmd+'\n\n'+self.message

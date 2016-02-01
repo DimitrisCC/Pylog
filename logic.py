@@ -270,8 +270,15 @@ class PList(Term):
         if self.is_empty():
             return self
 
-        if self.has_bar:
-            body = self.tail.make_bindings(bind_dict)
+        if self.has_bar: # i oura i 8a einai variable i lista ki an einai lista dn 8a exei bar
+            body = []
+            tail = self.tail.make_bindings(bind_dict)
+            if isinstance(tail, PList):
+                if not tail.is_empty():
+                    body.append(tail.head)
+                    body.extend(tail.tail)
+
+                
         else:
             body = []
             for term in self.tail:
@@ -279,7 +286,7 @@ class PList(Term):
                                                                                                                  Relation):
                     body.append(term.make_bindings(bind_dict))
                     
-        return PList(self.head.make_bindings(bind_dict), body, self.has_bar)
+        return PList(self.head.make_bindings(bind_dict), body, False)
 
     def getVars(self):
         vars = self.head.getVars()
@@ -297,9 +304,9 @@ def unify_var(var, expr, unifier):
     if var in unifier:
         return unify(unifier[var], expr, unifier)
     elif isinstance(expr, PList):
-        # if expr.has_bar:
-        #    return extend(unifier, var, PList(expr.head, expr.tail, False))
-        # else:
+        '''if expr.has_bar:
+            return extend(unifier, var, PList(expr.head, [expr.tail], False))
+        else:'''
         return extend(unifier, var, expr)
     elif isinstance(expr, list):
         return extend(unifier, var, expr)
