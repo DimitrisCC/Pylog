@@ -12,19 +12,23 @@ def pylog_console():
     kb_file = ''
     next_unif = 0
 
-    manual = "prin diagrafei to kwloarxeio eixa grapsei kai manual -_-"
+    manual = "load <filename>.\nLoads a prolog file (.pl only).\n\n" \
+             "listing.\nPrints the knowledge base.\n\n" \
+             "help.\nOpens the manual page.\n\n" \
+             "exit.\nExits the prolog command line.\n\n" \
+             "Everything else that ends with \'.\' is conidered a query. " \
+             "\nPressing the Enter key you can see an answer to your query.\n" \
+             "Using \';\' afterwards you can ask for another answer."
 
     c = 1
+    print("~~~~~~~~~~~~~~~~~~~~ WELCOME TO PYLOG ~~~~~~~~~~~~~~~~~~~~\n\nUse \'help.\' to see the manual")
     while flag:
 
         inputt = input("\n"+str(c)+"?- ")
         inputt.strip('')
         
-        if inputt == '?':
-            printNextUnif(unifs, vars, next_unif) 
-            next_unif += 1
-
-        elif inputt[-1] != '.':
+        
+        if inputt[-1] != '.':
             print("Sorry bro you missed the dot! Repeat the command again using a \".\" at the end!")
         elif inputt == "help.":
             print(manual)
@@ -48,9 +52,13 @@ def pylog_console():
                 print("You were supposed to load ONLY PROLOG FILES (.pl)!!! Please try again!!!")
             else:
                 if os.path.exists(kb_file):
-                    kb = logic.createKB(kb_file)
-                    print("Your file was loaded successfully")
-                    c += 1
+                    try:
+                        kb = logic.createKB(kb_file)
+                        print("Your file was loaded successfully")
+                        c += 1
+                    except parse.CommandException as e:
+                        print(e)
+                        
                 else:
                     print("Sorry! The file you tried to access does not exist.")
 
@@ -58,42 +66,66 @@ def pylog_console():
         elif inputt == "exit.":
             flag = False
         elif '=' in inputt:
-            command = inputt.split()
-            if command[1] != '=' or len(command) > 3:
+            index = inputt.find('=')
+            if index == 0 or index == len(inputt) -1:
                 print("Well..you just gave me a totally wrong command to check equality...try again!")
             else:
-                left = parse.Lexer(command[0]).parse_line()
-                right = parse.Lexer(command[2][:-1]).parse_line()
+                cmd1 = inputt[0:index].strip(' =')
+                cmd2 = inputt[index:].strip(' =.')
+                left = parse.Lexer(cmd1).parse_line()
+                right = parse.Lexer(cmd2).parse_line()
                 # estw oti ola kala stn parse_line...
                 unifier = logic.unify(left, right, {})
+                vars = left.getVars()
+                vars.extend(right.getVars())
                 if unifier is False:
                     print("no.")
                 else:
-                    print("yes.")
+                    print_next_unif([unifier], vars, 0)
+                    print("\nyes.")
                 
                 c += 1
                 
         else:
             stripped = inputt.strip()
-            command = parse.Lexer(stripped).parse_line()
+            try:
+                command = parse.Lexer(stripped).parse_line()
+            except parse.CommandException as e:
+                print(e)
+                
             vars = command.getVars()
-            # estw oti dn eixe la8os telos pantwn...kai dn epestrepse error dld
             unifs = logic.fol_bc_ask(kb, [command], {})
             next_unif = 1
+            
             if not unifs or unifs[0] is False:
                 print('no.')
             else:
-                printNextUnif(unifs, vars, 0)
-                print('yes.')
+                if vars == []:
+                    print('yes.')
+                else:
+                    print_next_unif(unifs, vars, 0)
+
+                    inputt = input("")
+                    while inputt == ';' or inputt == ';':
+                        print_next_unif(unifs, vars, next_unif)
+                        next_unif += 1
+                        if next_unif > len(unifs) or inputt == '':
+                            break
+                        inputt = input("")
             c += 1
 
-def printNextUnif(unifiers, variables, index):
+
+
+def print_next_unif(unifiers, variables, index):
     
     if len(unifiers) - 1 < index:
         print('no.')
     else:
-        for v in variables:
-            print(str(v)+" = "+str(v.get_bindings(unifiers[index])))
+        for i in range(len(variables)):
+            if i == 0:
+                print(str(variables[i])+" = "+str(variables[i].make_bindings(unifiers[index])), end = "")
+            else:
+                print(', '+str(variables[i])+" = "+str(variables[i].make_bindings(unifiers[index])), end = "")
             
 
 
