@@ -1,5 +1,19 @@
 import parse
 
+'''
+Each class contains the basic methods:
+__init__ : the constructor
+__str__ : returns the string representation of the class
+__repr__: same as str
+__hash__: makes the object hashable (used only for classes used as dictionary keys-all apart from PList)
+__eq__: returns whether the object is equal with the one passed as argument or not
+getVars: returns the variables contained in the specific term
+rename_vars: renames all the variables contained in the specific term
+make_bindings: makes the bindings of the variables in the specific term (used in fol-bc-ask)
+
+Some classes contain also some helping methods explained in their class
+'''
+
 
 # TERM ###################################################################################################
 class Term(object):
@@ -56,10 +70,11 @@ class Variable(Term):
             return []
         
         return [self]
-    
+
+
+    # produce a new temporary name to avoid confusion between variable names
     @staticmethod
     def produce_new_name(self):
-        # produce a new temporary name to avoid confusion between variable names
         Variable.new_num += 1
         return Variable('%s%d' % (self.name, Variable.new_num))
 
@@ -173,7 +188,18 @@ class Clause(Term):
 # PLIST ###################################################################################################
 class PList(Term):
 
-    element_checked = 0
+    '''
+    PLists are of the form:
+    if they have bar:
+        head = elements before bar
+        tail = element after bar (this can be either variable or PList).
+               it represents the sublist of the whole PList after the head elements
+        has_bar = True
+    else:
+        head = all the elements of the PList
+        tail --> not used
+        has_bar = False
+    '''
     
     def __init__(self, head = [] , tail = [] , has_bar = False):
         '''
@@ -198,15 +224,20 @@ class PList(Term):
     def __eq__(self, alist):
         return isinstance(alist, PList) and self.head == alist.head and self.tail == alist.tail
 
+    # returns whether the PList is empty or not (it is empty if head has no elements)
     def is_empty(self):
         return self.head == []
 
+    # returns the first element of the PList
     def get_first(self):
         if self.is_empty():
             return None
         else:
             return self.head[0]
-    
+
+    # returns the sublist after the first element
+    # ATTENTION : if it has a bar but it still has elements after the first element in the head
+    # then the sublist returned will have a bar too
     def get_rest(self):
         if self.is_empty():
             return PList()
@@ -271,6 +302,7 @@ class PList(Term):
 
 # BACKWARD CHAINING #######################################################################################
 
+# unifies a variable with expr
 def unify_var(var, expr, unifier):
     if var in unifier:
         return unify(unifier[var], expr, unifier)
@@ -286,8 +318,8 @@ def unify_var(var, expr, unifier):
         return extend(unifier, var, expr)
 
 
+"""Return true if var occurs anywhere in x."""
 def occur_check(var, x):
-    """Return true if var occurs anywhere in x."""
     if var == x:
         return True
     elif isinstance(x, Relation) and var in x.args:
@@ -297,24 +329,23 @@ def occur_check(var, x):
             return True
     return False
 
-
+# extend({x: 1}, y, 2)
+# {y: 2, x: 1}
 def extend(unifier, var, val):
-    # extend({x: 1}, y, 2)
-    # {y: 2, x: 1}
     unifier2 = unifier.copy()
     unifier2[var] = val
     return unifier2
 
-
+# it joins unifier1 and unifier2
 def compose(unifier1, unifier2):
     for i in unifier2.items():
         unifier1 = extend(unifier1, i[0], i[1])
     return unifier1
 
-
+# returns a unifier of x and y if they can unify and False otherwise
 def unify(x, y, unifier):
-    # Failure
-    if unifier is False:
+
+    if unifier is False: # Failure on previous call of the function
         return False
     elif x == y:
         return unifier
@@ -334,10 +365,10 @@ def unify(x, y, unifier):
         return unify(x.get_rest(), y.get_rest(), unify(x.get_first(), y.get_first(), unifier))
     elif isinstance(x, list) and isinstance(y, list):
         return unify(x[1:], y[1:], unify(x[0], y[0], unifier))
-    else:
+    else: # Failure case
         return False
 
-
+# creates the knowledge base from the file given
 def createKB(file):
     f = open(file, 'r')
     lines = f.readlines()
@@ -350,50 +381,44 @@ def createKB(file):
     return kb
 
 
-
+# The backward chaining algorithm
 def fol_bc_ask(KB, goals, unifier):
     if not goals:
         return unifier
     ans = []
 
-    b = goals[0].make_bindings(unifier)  
-    # print(b)
+    b = goals[0].make_bindings(unifier)
 
-    for t in KB: 
+    for t in KB: # for each term in knowledge base
+
         t = t.rename_vars({})
         if isinstance(t, Clause):
-            # print('checking the CLAUSE '+str(t))
+            # if it is a clause and b unifies with the head of the clause we add in the goals the body of the clause
             new_unif = unify(t.head, b, unifier)
             if new_unif is False:
                 continue
-            
-            # print(new_unif)
-            goals.extend(t.body)  # to extend einai gia na pros8eseis ta stoixeia
-            # mias listas se iparxousa lista
+
+            goals.extend(t.body)
             x = fol_bc_ask(KB, goals[1:], compose(unifier, new_unif))
             if isinstance(x, list):
                 ans.extend(x)
             else:
                 ans.append(x)
 
-        if isinstance(t, Relation) or isinstance(t, Term): #tqra akiri metavliti mesa stn vasi gnwsis diskolo
-            
-            # print('checking '+str(t))
+        if isinstance(t, Relation) or isinstance(t, Term):
+            # if it is relation or term we try to unify b with it
             new_unif = unify(t, b, unifier)
             if new_unif is False:
-                # print("FALSE UNIF")
                 continue
-            # print(new_unif)
-            
-            # print("before append "+str(ans))
+
+
             x = fol_bc_ask(KB, goals[1:], compose(unifier, new_unif))
             if isinstance(x, list):
                 ans.extend(x)
             else:
                 ans.append(x)
-            # print("after append "+str(ans))
-            
-    #print(ans)
+
+    # returns all the possible unifiers it found
     return ans
 
 ###########################################################################################################

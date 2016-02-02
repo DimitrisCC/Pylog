@@ -104,7 +104,7 @@ class Lexer:
                 return error
                         
             argums.append(self.parse_line())
-            arg += 1 # deixnei to simeio sto argums meta to argument
+            arg += 1 # the position the bar was found
             if self.char == '|':
                 has_b = True
                 index_of_bar = arg
@@ -112,7 +112,6 @@ class Lexer:
         if not argums:
             return logic.PList()
         else:
-            #ipo8etw pws dn exei la8i to command
             if has_b:
                 return logic.PList(head=argums[0:index_of_bar], tail=argums[index_of_bar], has_bar = has_b)             
             else:    

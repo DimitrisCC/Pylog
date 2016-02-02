@@ -2,7 +2,7 @@ import os.path
 
 import logic
 import parse
-
+import sys
 
 def pylog_console():
     flag = True
@@ -45,7 +45,7 @@ def pylog_console():
                 print("You have not loaded a file yet! Please load your file first with the command\n"
                       "load <name of your file>")
 
-        elif inputt.startswith("load"):  # dn 3erw kan an sintasetai etsi
+        elif inputt.startswith("load"):
             kb_file = inputt.split()[1][:-1]
 
             if kb_file[-3:] != ".pl":
@@ -124,8 +124,12 @@ def print_next_unif(unifiers, variables, index):
         for i in range(len(variables)):
             if i == 0:
                 print(str(variables[i])+" = "+str(variables[i].make_bindings(unifiers[index])), end = "")
+                # if print doesn't work (works only for Python 3 and after)
+                # sys.stdout.write(str(variables[i])+" = "+str(variables[i].make_bindings(unifiers[index])))
             else:
                 print(', '+str(variables[i])+" = "+str(variables[i].make_bindings(unifiers[index])), end = "")
+                # if print doesn't work (works only for Python 3 and after)
+                # sys.stdout.write(', '+str(variables[i])+" = "+str(variables[i].make_bindings(unifiers[index])))
             
 
 
