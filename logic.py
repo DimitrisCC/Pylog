@@ -17,7 +17,6 @@ Some classes contain also some helping methods explained in their class
 
 # TERM ###################################################################################################
 class Term(object):
-    
     def __init__(self, name):
         self.name = name
 
@@ -26,7 +25,7 @@ class Term(object):
 
     def __repr__(self):
         return str(self.name)
-    
+
     def __hash__(self):
         return hash(self.name)
 
@@ -41,13 +40,13 @@ class Term(object):
 
     def make_bindings(self, bind_dict):
         return self
-    
+
+
 ###########################################################################################################
 
 
 # VARIABLE ################################################################################################
 class Variable(Term):
-    
     new_num = 0  # "static" member to be used in produce_new_name function
 
     def __init__(self, name):
@@ -64,13 +63,12 @@ class Variable(Term):
 
     def __eq__(self, var):
         return isinstance(var, Variable) and var.name == self.name
-    
+
     def getVars(self):
         if self.name == '_':
             return []
-        
-        return [self]
 
+        return [self]
 
     # produce a new temporary name to avoid confusion between variable names
     @staticmethod
@@ -81,7 +79,7 @@ class Variable(Term):
     def rename_vars(self, renamed_dict):
         if self.name == '_':
             return self.produce_new_name(self)
-        
+
         if self in renamed_dict.keys():
             return renamed_dict[self]
         else:
@@ -98,12 +96,12 @@ class Variable(Term):
 
         return binding.make_bindings(bind_dict)
 
+
 ###########################################################################################################
-    
+
 
 # RELATION ################################################################################################
 class Relation(Term):
-    
     def __init__(self, name, arguments):
         super(Relation, self).__init__(name)
         self.args = arguments
@@ -128,22 +126,22 @@ class Relation(Term):
         new_names = []
         for arg in self.args:
             new_names.append(arg.rename_vars(renamed_dict))
-            
+
         return Relation(self.name, new_names)
 
     def make_bindings(self, bind_dict):
         bound = []
         for arg in self.args:
             bound.append(arg.make_bindings(bind_dict))
-            
+
         return Relation(self.name, bound)
+
 
 ###########################################################################################################
 
 
 # CLAUSE ##################################################################################################
 class Clause(Term):
-    
     def __init__(self, head, body=[]):
         self.head = head
         self.body = body
@@ -169,7 +167,7 @@ class Clause(Term):
         renamed_body = []
         for part in self.body:
             renamed_body.append(part.rename_vars(renamed_dict))
-            
+
         return Clause(self.head.rename_vars(renamed_dict), renamed_body)
 
     def make_bindings(self, bind_dict):
@@ -182,12 +180,12 @@ class Clause(Term):
 
         return Clause(head, body)
 
+
 ###########################################################################################################
 
 
 # PLIST ###################################################################################################
 class PList(Term):
-
     '''
     PLists are of the form:
     if they have bar:
@@ -200,8 +198,8 @@ class PList(Term):
         tail --> not used
         has_bar = False
     '''
-    
-    def __init__(self, head = [] , tail = [] , has_bar = False):
+
+    def __init__(self, head=[], tail=[], has_bar=False):
         '''
         when it has bar then it has a tail too.
         otherwise all the arguments are in head list
@@ -217,9 +215,9 @@ class PList(Term):
         if self.is_empty():
             return '[]'
         if self.has_bar:
-            return '[%s|%s]' % (', '.join(map(str, self.head)),str(self.tail))
+            return '[%s|%s]' % (', '.join(map(str, self.head)), str(self.tail))
         elif self.tail == []:
-            return '[%s]' % (', '.join(map(str, self.head)))           
+            return '[%s]' % (', '.join(map(str, self.head)))
 
     def __eq__(self, alist):
         return isinstance(alist, PList) and self.head == alist.head and self.tail == alist.tail
@@ -241,14 +239,14 @@ class PList(Term):
     def get_rest(self):
         if self.is_empty():
             return PList()
-        elif self.has_bar: # tail will be either a variable or a PList
+        elif self.has_bar:  # tail will be either a variable or a PList
             if len(self.head) == 1:
                 return self.tail
             else:
-                return PList(self.head[1:],self.tail, True)
+                return PList(self.head[1:], self.tail, True)
         else:
-            return PList(head = self.head[1:])
-    
+            return PList(head=self.head[1:])
+
     def getVars(self):
         if self.is_empty():
             return []
@@ -257,11 +255,10 @@ class PList(Term):
         for arg in self.head:
             vars.extend(arg.getVars())
 
-        if self.has_bar: # then it has a tail too (tail != [])
+        if self.has_bar:  # then it has a tail too (tail != [])
             vars.extend(self.tail.getVars())
-            
-        return vars
 
+        return vars
 
     def rename_vars(self, renamed_dict):
         if self.is_empty():
@@ -271,11 +268,10 @@ class PList(Term):
         for arg in self.head:
             new_head.append(arg.rename_vars(renamed_dict))
 
-        if self.has_bar :
+        if self.has_bar:
             return PList(new_head, self.tail.rename_vars(renamed_dict), self.has_bar)
         else:
             return PList(new_head)
-    
 
     def make_bindings(self, bind_dict):
         if self.is_empty():
@@ -285,17 +281,18 @@ class PList(Term):
         for arg in self.head:
             new_head.append(arg.make_bindings(bind_dict))
 
-        if self.has_bar: # the new PList should not have a bar and if it is a PList it's elements will be appended to the new_head
+        if self.has_bar:  # the new PList should not have a bar and if it is a PList it's elements will be appended to the new_head
             # self.tail after the bindings are made will be either a PList with has_bar = False or a variable
             tail = self.tail.make_bindings(bind_dict)
             if isinstance(tail, PList):
                 new_head.extend(tail.head)
                 return PList(new_head)
-            else: # it is a variable again so...
+            else:  # it is a variable again so...
                 return PList(new_head, tail, True)
         else:
             return PList(new_head)
-    
+
+
 ###########################################################################################################
 
 
@@ -319,6 +316,8 @@ def unify_var(var, expr, unifier):
 
 
 """Return true if var occurs anywhere in x."""
+
+
 def occur_check(var, x):
     if var == x:
         return True
@@ -329,6 +328,7 @@ def occur_check(var, x):
             return True
     return False
 
+
 # extend({x: 1}, y, 2)
 # {y: 2, x: 1}
 def extend(unifier, var, val):
@@ -336,16 +336,17 @@ def extend(unifier, var, val):
     unifier2[var] = val
     return unifier2
 
+
 # it joins unifier1 and unifier2
 def compose(unifier1, unifier2):
     for i in unifier2.items():
         unifier1 = extend(unifier1, i[0], i[1])
     return unifier1
 
+
 # returns a unifier of x and y if they can unify and False otherwise
 def unify(x, y, unifier):
-
-    if unifier is False: # Failure on previous call of the function
+    if unifier is False:  # Failure on previous call of the function
         return False
     elif x == y:
         return unifier
@@ -365,8 +366,9 @@ def unify(x, y, unifier):
         return unify(x.get_rest(), y.get_rest(), unify(x.get_first(), y.get_first(), unifier))
     elif isinstance(x, list) and isinstance(y, list):
         return unify(x[1:], y[1:], unify(x[0], y[0], unifier))
-    else: # Failure case
+    else:  # Failure case
         return False
+
 
 # creates the knowledge base from the file given
 def createKB(file):
@@ -376,7 +378,7 @@ def createKB(file):
     kb = []
     for line in lines:
         k = parse.Lexer(line).parse_line()
-        kb.append(k)  
+        kb.append(k)
 
     return kb
 
@@ -389,7 +391,7 @@ def fol_bc_ask(KB, goals, unifier):
 
     b = goals[0].make_bindings(unifier)
 
-    for t in KB: # for each term in knowledge base
+    for t in KB:  # for each term in knowledge base
 
         t = t.rename_vars({})
         if isinstance(t, Clause):
@@ -410,7 +412,6 @@ def fol_bc_ask(KB, goals, unifier):
             new_unif = unify(t, b, unifier)
             if new_unif is False:
                 continue
-
 
             x = fol_bc_ask(KB, goals[1:], compose(unifier, new_unif))
             if isinstance(x, list):

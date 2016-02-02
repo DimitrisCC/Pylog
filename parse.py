@@ -38,11 +38,11 @@ class Lexer:
             raise CommandException('identifier', 'Your identifiers should start either with letter or with \'_\'')
             return error
         self.consume()
-        
+
         while self.is_alpharethmetic() and not self.is_end_of_term():
             identifier += self.char
             self.consume()
-            
+
         return identifier
 
     def consume(self):
@@ -59,7 +59,6 @@ class Lexer:
     def consume_comment(self):
         while (self.char != ENDLINE and self.char != EOF):
             self.consume()
-
 
     def is_end(self):
         return (self.char == '.' or self.char == EOF or self.char == ENDLINE)
@@ -78,12 +77,12 @@ class Lexer:
 
     def consume_relation(self, relation_name):
         args = []
-        while self.consume() != ')': 
+        while self.consume() != ')':
             if self.is_end():
                 raise CommandException('relation', 'You probably forgot \')\'')
                 return error
             args.append(self.parse_line())
-            
+
         if relation_name == '':  # you need a name for the Relation
             raise CommandException('relation', 'Your relation should have a name')
             return error
@@ -97,14 +96,14 @@ class Lexer:
         argums = []
         has_b = False
         index_of_bar = 0
-        arg = 0 
+        arg = 0
         while self.consume() != ']':
             if self.is_end():
                 raise CommandException('list', 'You probably forgot \']\'')
                 return error
-                        
+
             argums.append(self.parse_line())
-            arg += 1 # the position the bar was found
+            arg += 1  # the position the bar was found
             if self.char == '|':
                 has_b = True
                 index_of_bar = arg
@@ -113,23 +112,23 @@ class Lexer:
             return logic.PList()
         else:
             if has_b:
-                return logic.PList(head=argums[0:index_of_bar], tail=argums[index_of_bar], has_bar = has_b)             
-            else:    
+                return logic.PList(head=argums[0:index_of_bar], tail=argums[index_of_bar], has_bar=has_b)
+            else:
                 return logic.PList(argums)
 
     def is_clause(self):
         return self.char == ':' and self.next_char() == '-'
 
     def consume_clause(self, head):
-        self.consume() # consuming ':'
+        self.consume()  # consuming ':'
 
         if not head:
             raise CommandException('clause', 'Your clause should have a term before \':-\'')
             return error
-        
+
         args = []
-        
-        self.consume() # consuming '-'
+
+        self.consume()  # consuming '-'
         while not self.is_end():
             args.append(self.parse_line())
             self.consume()
@@ -137,7 +136,7 @@ class Lexer:
         return logic.Clause(head=head, body=args)
 
     def is_argument(self):
-        return self.char == ',' or self.char == '|' or self.is_end_of_term() 
+        return self.char == ',' or self.char == '|' or self.is_end_of_term()
 
     def consume_var_or_term(self, token):
         if token == '':
@@ -147,15 +146,13 @@ class Lexer:
             return logic.Variable(name=token)
         else:
             return logic.Term(name=token)
-    
-            
 
     # Parser:
 
     # it parses only one line
     # to parse multiple lines (in a file maybe) run this until it returns EOF
     # no checking for invalid input is done but it maybe could
-    
+
     def parse_line(self):
         token = ''
         term = None
@@ -171,7 +168,7 @@ class Lexer:
                     term = self.consume_relation(token)
                 except CommandException as c:
                     raise c
-                
+
                 if self.is_end_of_term():
                     return term
                 else:
@@ -182,14 +179,14 @@ class Lexer:
                     term = self.consume_list()
                 except CommandException as c:
                     raise c
-                
+
                 if self.is_end_of_term():
                     return term
                 else:
                     self.consume()
 
             elif self.is_argument():  # arguments case
-                
+
                 if self.is_end_of_term():
                     token += self.char
 
@@ -198,7 +195,7 @@ class Lexer:
                         term = self.consume_var_or_term(token)
                     except CommandException as c:
                         raise c
-                    
+
                 return term
 
             elif self.is_clause():
@@ -211,14 +208,14 @@ class Lexer:
                     token = self.get_identifier()
                 except CommandException as c:
                     raise c
-        
+
         # eof occurred
         # if term is not assigned to sth you must deal with the token first, create the term and then return it
         if not term:  # term is None ---> maybe check for correct line or sth
             try:
                 term = self.consume_var_or_term(token)
             except CommandException as c:
-                    raise c
+                raise c
             '''if term == error:
                 if self.char == ENDLINE:
                     return ENDLINE
@@ -227,11 +224,9 @@ class Lexer:
                 else:
                     return error'''
 
-            
         return term
 
 
-    
 class CommandException(Exception):
     """Exception raised when wrong commands occur.
 
@@ -243,6 +238,6 @@ class CommandException(Exception):
     def __init__(self, cmd_type, msg):
         self.cmd = cmd_type
         self.msg = msg
-        
+
     def __str__(self):
-        return '\nCommand Exception\n\ncommand type: '+self.cmd+'\n'+self.msg
+        return '\nCommand Exception\n\ncommand type: ' + self.cmd + '\n' + self.msg

@@ -2,7 +2,7 @@ import os.path
 
 import logic
 import parse
-import sys
+
 
 def pylog_console():
     flag = True
@@ -24,10 +24,9 @@ def pylog_console():
     print("~~~~~~~~~~~~~~~~~~~~ WELCOME TO PYLOG ~~~~~~~~~~~~~~~~~~~~\n\nUse \'help.\' to see the manual")
     while flag:
 
-        inputt = input("\n"+str(c)+"?- ")
+        inputt = input("\n" + str(c) + ". ?- ")
         inputt.strip('')
-        
-        
+
         if inputt[-1] != '.':
             print("Sorry bro you missed the dot! Repeat the command again using a \".\" at the end!")
         elif inputt == "help.":
@@ -36,11 +35,11 @@ def pylog_console():
         elif inputt == "listing.":
 
             if kb_file != '':
-                
+
                 for k in kb:
                     print(k)
                 c += 1
-                
+
             else:
                 print("You have not loaded a file yet! Please load your file first with the command\n"
                       "load <name of your file>")
@@ -58,16 +57,16 @@ def pylog_console():
                         c += 1
                     except parse.CommandException as e:
                         print(e)
-                        
+
                 else:
                     print("Sorry! The file you tried to access does not exist.")
 
-        
+
         elif inputt == "exit.":
             flag = False
         elif '=' in inputt:
             index = inputt.find('=')
-            if index == 0 or index == len(inputt) -1:
+            if index == 0 or index == len(inputt) - 1:
                 print("Well..you just gave me a totally wrong command to check equality...try again!")
             else:
                 cmd1 = inputt[0:index].strip(' =')
@@ -83,20 +82,20 @@ def pylog_console():
                 else:
                     print_next_unif([unifier], vars, 0)
                     print("\nyes.")
-                
+
                 c += 1
-                
+
         else:
             stripped = inputt.strip()
             try:
                 command = parse.Lexer(stripped).parse_line()
             except parse.CommandException as e:
                 print(e)
-                
+
             vars = command.getVars()
             unifs = logic.fol_bc_ask(kb, [command], {})
             next_unif = 1
-            
+
             if not unifs or unifs[0] is False:
                 print('no.')
             else:
@@ -115,22 +114,19 @@ def pylog_console():
             c += 1
 
 
-
 def print_next_unif(unifiers, variables, index):
-    
     if len(unifiers) - 1 < index:
         print('no.')
     else:
         for i in range(len(variables)):
             if i == 0:
-                print(str(variables[i])+" = "+str(variables[i].make_bindings(unifiers[index])), end = "")
+                print(str(variables[i]) + " = " + str(variables[i].make_bindings(unifiers[index])), end="")
                 # if print doesn't work (works only for Python 3 and after)
                 # sys.stdout.write(str(variables[i])+" = "+str(variables[i].make_bindings(unifiers[index])))
             else:
-                print(', '+str(variables[i])+" = "+str(variables[i].make_bindings(unifiers[index])), end = "")
+                print(', ' + str(variables[i]) + " = " + str(variables[i].make_bindings(unifiers[index])), end="")
                 # if print doesn't work (works only for Python 3 and after)
                 # sys.stdout.write(', '+str(variables[i])+" = "+str(variables[i].make_bindings(unifiers[index])))
-            
 
 
 if __name__ == "__main__":
